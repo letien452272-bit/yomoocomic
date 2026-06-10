@@ -1,0 +1,11 @@
+.menu-icon{
+    width:18px;
+    height:18px;
+    margin-right:10px;
+    object-fit:contain;
+}
+
+.user-dropdown a{
+    display:flex;
+    align-items:center;
+}

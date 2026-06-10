@@ -1,0 +1,428 @@
+body{
+	font-family: 'Roboto', sans-serif;
+	color: aliceblue;
+	background: #101825;
+}
+.wapper{
+	text-align: center;
+	max-width: 1200px;
+	margin: 0px auto;
+}
+.logo img{
+	width: 150px;
+	display: block;
+}
+.avatar img{
+	border: 2px solid #FFFFFF;
+	border-radius: 10px;
+	width: 60px;
+}
+.main-content{
+	margin-top: 40px;
+	flex: 80%;
+	display: flex;
+}
+.up-header{
+	text-decoration: none;
+	padding: 4px;
+}
+.up-header table{
+    width: 100%;
+}
+.up-header h3{
+	color: aliceblue;
+	display: flex;
+    justify-content: space-evenly;
+	text-decoration: none;
+}
+.up-header a{
+    text-decoration: none;
+    color: white;
+}
+.search button img{
+    width: 10px;
+    height: 10px;
+    padding: 0;
+}
+.menu{
+    display: flex;
+    gap: 20px;
+}
+.genre-menu{
+    position: relative;
+    display: inline-block;
+}
+
+.genre-menu > a{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.arrow{
+    font-size: 20px;
+	height: 20px;
+    line-height: 1;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+.genre-menu{
+    position: relative;
+    display: inline-block;
+}
+
+#genre-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.arrow{
+    width: 13px;
+    height: 13px;
+    filter: brightness(0) invert(1);
+}
+
+.genre-dropdown{
+    display: none;
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 520px;
+    background: white;
+    padding: 18px 25px;
+    border-top: 3px solid #ff7a00;
+    z-index: 99999;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 35px;
+}
+
+.genre-dropdown a{
+    color: #111 !important;
+    display: block;
+    text-decoration: none;
+}
+
+.genre-dropdown.show{
+    display: grid;
+}
+.search button img{
+    width: 10px;
+    height: 10px;
+    padding: 0;
+}
+.menu{
+    display: flex;
+    gap: 20px;
+}
+.genre-menu{
+    position: relative;
+    display: inline-block;
+}
+
+.genre-menu > a{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.arrow{
+    font-size: 20px;
+	height: 20px;
+    line-height: 1;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+.genre-menu{
+    position: relative;
+    display: inline-block;
+}
+
+#genre-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.arrow{
+    width: 13px;
+    height: 13px;
+    filter: brightness(0) invert(1);
+}
+
+.genre-dropdown{
+    display: none;
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 520px;
+    background: white;
+    padding: 18px 25px;
+    border-top: 3px solid #ff7a00;
+    z-index: 99999;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 35px;
+}
+
+.genre-dropdown a{
+    color: #111 !important;
+    display: block;
+    text-decoration: none;
+}
+
+.genre-dropdown.show{
+    display: grid;
+}
+.login-page{
+    min-height: 100vh;
+    background: #101927;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box{
+    width: 360px;
+    background: #1f2b3a;
+    border-radius: 8px;
+    padding: 25px;
+    color: white;
+}
+
+.login-box h2{
+    text-align: center;
+    margin-top: 0;
+}
+
+.login-box label{
+    display: block;
+    font-size: 13px;
+    margin: 10px 0 6px;
+}
+
+.login-box input[type="text"],
+.login-box input[type="password"]{
+    width: 100%;
+    padding: 11px;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+}
+
+.login-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin: 10px 0;
+}
+
+.login-row label{
+    margin: 0;
+}
+
+.login-row a,
+.login-box p a{
+    color: #38bdf8;
+    text-decoration: none;
+}
+
+.captcha{
+    background: white;
+    color: #111;
+    padding: 18px;
+    margin: 15px 0;
+    border-radius: 3px;
+}
+
+.login-btn{
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-box p{
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.or{
+    text-align: center;
+    margin: 12px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.google-btn{
+    width: 100%;
+    background: #2d384a;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+}
+.user-menu{
+    position: relative;
+    display: inline-block;
+}
+
+.user-btn{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: white;
+}
+
+.user-btn img{
+    width: 45px;
+    height: 45px;
+    border-radius: 30%;
+    border: 2px solid #A9D169;
+    object-fit: cover;
+}
+
+.user-arrow{
+ 	color: #ffd700;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.user-dropdown{
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 300px;
+    background: white;
+    color: #222;
+    border: 1px solid #ff4d7d;
+    border-radius: 5px;
+    z-index: 99999;
+    overflow: hidden;
+    text-align: left;
+}
+
+.user-dropdown.show{
+    display: block;
+}
+
+.user-head{
+    gap: 12px;
+    align-items: center;
+    padding: 18px;
+    border-bottom: 1px solid #ff4d7d;
+}
+
+.user-head h3{
+	text-align: center;
+    margin: 0;
+    color: #222;
+}
+
+.user-head p{
+	text-align: center;
+    margin: 4px 0 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.user-money{
+    display: flex;
+    justify-content: space-around;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.user-dropdown a{
+    display: block;
+    padding: 12px 20px;
+    color: #222;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.user-dropdown a:hover{
+    background: #f3f3f3;
+}
+
+.vip{
+    background: #f6b500;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+.user-dropdown img{
+	width: 20px;
+}
+.login-page {
+    min-height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    width: 300px;
+    background: #1f2b3a;
+    padding: 25px;
+    border-radius: 10px;
+    color: #fff;
+}
+
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-box input[type="email"],
+.login-box input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.login-box button{
+    width:100%;
+    height:42px;
+
+    background:#2ecc71;
+    color:#fff;
+
+    border:none;
+    border-radius:6px;
+
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+.login-box button:hover{
+    background:#27ae60;
+}
+
+.remember {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.forgot {
+    display: block;
+    margin-top: 10px;
+}

@@ -1,0 +1,335 @@
+body{
+	font-family: 'Roboto', sans-serif;
+	color: aliceblue;
+	background: #1F2B3A;
+}
+.admin-list-page{
+    padding: 30px;
+    background: #f3f6fb;
+    min-height: 100vh;
+    color: #172033;
+}
+
+.admin-breadcrumb{
+    margin-bottom: 30px;
+    color: #64748b;
+}
+
+.admin-list-page h2{
+    margin-bottom: 5px;
+}
+
+.sub-text{
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.filter-box,
+.table-box{
+    background: white;
+    border: 1px solid #d9e1ec;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.search-row{
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.search-row input{
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #d9e1ec;
+}
+
+.search-row button{
+    width: 130px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    font-weight: 700;
+}
+
+.filter-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 220px;
+    gap: 10px;
+}
+
+.filter-row select,
+.reset-btn{
+    padding: 12px;
+    border: 1px solid #d9e1ec;
+    background: white;
+    border-radius: 4px;
+}
+
+.reset-btn{
+    background: #64748b;
+    color: white;
+    font-weight: 700;
+}
+
+.table-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #d9e1ec;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.add-btn{
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.manga-table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.manga-table th,
+.manga-table td{
+    border: 1px solid #d9e1ec;
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.manga-table th{
+    background: #f8fafc;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.manga-table td img{
+    width: 55px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.manga-name{
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.tag{
+    color: white;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.orange{
+    background: #f97316;
+}
+
+.green{
+    background: #22c55e;
+}
+
+.gray{
+    background: #64748b;
+}
+
+.genre-tag{
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    padding: 4px 7px;
+    border-radius: 4px;
+    margin: 2px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.edit-btn{
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.table-footer{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination{
+    display: flex;
+    gap: 6px;
+}
+
+.pagination a{
+    text-decoration: none;
+    color: #2563eb;
+    padding: 8px 11px;
+    border-radius: 4px;
+}
+
+.pagination a.active,
+.pagination a:hover{
+    background: #2563eb;
+    color: white;
+}
+.manga-table th:last-child,
+.manga-table td:last-child{
+    text-align: center;
+    vertical-align: middle;
+}
+
+.manga-table td:last-child{
+    display: table-cell;
+}
+
+.edit-btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.action-cell{
+    text-align: center;
+    vertical-align: middle;
+}
+
+.action-cell .edit-btn{
+    margin: 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+body{
+    background: #0d1826;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+}
+
+.admin-list-page{
+    background: #0d1826;
+    color: #ffffff;
+}
+
+.admin-breadcrumb,
+.sub-text{
+    color: #cbd5e1;
+}
+
+h2,
+.table-header h3{
+    color: #ffffff;
+}
+
+.filter-box,
+.table-box{
+    background: #1d2a3b;
+    border: 1px solid #2f4058;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.search-row input,
+.filter-row select{
+    background: #ffffff;
+    color: #111827;
+    border: none;
+    border-radius: 4px;
+}
+
+.search-row button,
+.add-btn,
+.edit-btn,
+.pagination .active{
+    background: #16c756;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+
+.search-row button:hover,
+.add-btn:hover,
+.edit-btn:hover{
+    background: #12a947;
+}
+
+.reset-btn{
+    background: #334155;
+    color: white;
+}
+
+.manga-table{
+    background: #1d2a3b;
+    color: #ffffff;
+}
+
+.manga-table th{
+    background: #24344a;
+    color: #ffffff;
+    border-color: #33465f;
+}
+
+.manga-table td{
+    background: #1d2a3b;
+    color: #ffffff;
+    border-color: #33465f;
+}
+
+.manga-name a{
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.manga-name a:hover{
+    color: #16c756;
+}
+
+.genre-tag{
+    background: #2f60e8;
+    color: white;
+}
+
+.tag.orange{
+    background: #ff7a1a;
+    color: white;
+}
+
+.tag.green{
+    background: #16c756;
+    color: white;
+}
+
+.tag.gray{
+    background: #64748b;
+    color: white;
+}
+
+.table-footer,
+.pagination a{
+    color: #ffffff;
+}
+
+.action-cell{
+    text-align: center;
+    vertical-align: middle;
+}
+
+.action-cell .edit-btn{
+    margin: 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
