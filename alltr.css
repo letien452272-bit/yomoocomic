@@ -1,0 +1,239 @@
+.pagination{
+    margin-top:30px;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+}
+
+.pagination button{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:8px;
+    background:#253247;
+    color:#fff;
+    cursor:pointer;
+}
+
+.pagination button.active{
+    background:#2ecc71;
+}
+.pagination{
+    margin:30px 0;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+}
+
+.pagination button{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:8px;
+    background:#253247;
+    color:#fff;
+    cursor:pointer;
+}
+
+.pagination button.active{
+    background:#2ecc71;
+}
+.comic-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+}
+
+.chapter-status{
+    color:#d1d5db;
+    font-size:14px;
+}
+
+.green-dot{
+    width:8px;
+    height:8px;
+    background:#2ecc71;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.comic-view{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    color:#facc15;
+    font-weight:600;
+}
+
+.comic-view img{
+    width:15px;
+    height:15px;
+}
+@media screen and (max-width:768px){
+
+    /* Hai ô lọc */
+    .filter-bar{
+        display:flex !important;
+        justify-content:center !important;
+        gap:12px !important;
+    }
+
+    .filter-bar select{
+        width:140px !important;
+        height:40px !important;
+        font-size:14px !important;
+    }
+
+    /* Chưa có truyện nào */
+    #allComicList{
+        display:flex !important;
+        justify-content:center !important;
+        align-items:center !important;
+        text-align:center !important;
+        min-height:120px !important;
+    }
+
+    #allComicList p{
+        width:100%;
+        text-align:center !important;
+        font-size:18px !important;
+        margin:0 !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .filter-bar{
+        display:flex !important;
+        justify-content:center !important;
+        gap:10px !important;
+    }
+
+    .filter-bar select{
+        width:170px !important;
+    	height:36px !important;   /* thấp hơn */
+    	height:36px !important;   /* thấp hơn */
+        font-size:14px !important;
+        padding:0 10px !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    #allComicList{
+        display:grid !important;
+        grid-template-columns:repeat(3, 1fr) !important;
+        gap:10px !important;
+        padding:0 8px !important;
+    }
+
+    #allComicList .mobile-card{
+        width:100% !important;
+        background:transparent !important;
+        padding:0 !important;
+        margin:0 !important;
+        display:block !important;
+    }
+
+    .mobile-cover{
+        width:100% !important;
+        height:135px !important;
+        object-fit:cover !important;
+        border-radius:8px !important;
+        display:block !important;
+    }
+
+    .mobile-title{
+        font-size:10.5px !important;
+        line-height:1.25 !important;
+        height:28px !important;
+        overflow:hidden !important;
+        margin:5px 0 4px !important;
+    }
+
+    .mobile-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        font-size:10px !important;
+    }
+
+    .mobile-bottom .comic-view img{
+        width:10px !important;
+        height:10px !important;
+    }
+}
+@media screen and (max-width:768px){
+
+    #allComicList.category-grid{
+        display:grid !important;
+        grid-template-columns:repeat(3, 105px) !important;
+        gap:10px !important;
+        justify-content:start !important;
+        align-items:start !important;
+        padding:0 8px !important;
+        width:100% !important;
+        box-sizing:border-box !important;
+    }
+
+    #allComicList.category-grid .comic{
+    width:105px !important;
+    max-width:105px !important;
+    min-width:105px !important;
+    height:auto !important;
+
+    background:#253247 !important;
+    border-radius:8px !important;
+    padding:6px !important;
+    margin:0 !important;
+
+    display:block !important;
+    overflow:hidden !important;
+}
+
+    #allComicList.category-grid .comic-cover{
+        width:105px !important;
+        height:145px !important;
+        border-radius:8px !important;
+        overflow:hidden !important;
+    }
+
+    #allComicList.category-grid .comic-cover img{
+        width:105px !important;
+        height:145px !important;
+        object-fit:cover !important;
+        display:block !important;
+    }
+
+    #allComicList.category-grid .comic-info{
+        padding:4px 0 0 !important;
+        background:transparent !important;
+    }
+
+    #allComicList.category-grid .comic-info h3{
+        font-size:10px !important;
+        line-height:1.25 !important;
+        height:26px !important;
+        overflow:hidden !important;
+        margin:0 0 4px !important;
+    }
+
+    #allComicList.category-grid .comic-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        margin-top:2px !important;
+    }
+
+    #allComicList.category-grid .chapter-status,
+    #allComicList.category-grid .comic-view{
+        font-size:9px !important;
+    }
+
+    #allComicList.category-grid .comic-view img{
+        width:9px !important;
+        height:9px !important;
+    }
+}

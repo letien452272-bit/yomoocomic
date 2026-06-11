@@ -1,0 +1,430 @@
+body{
+	font-family: 'Roboto', sans-serif;
+	color: aliceblue;
+	background: #1F2B3A;
+}
+.chapter-admin-page{
+    padding: 30px;
+    background: #f3f6fb;
+    min-height: 100vh;
+    color: #172033;
+}
+
+.chapter-top{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.chapter-top h2{
+    margin: 0 0 8px;
+}
+
+.chapter-top p{
+    margin: 0;
+    color: #64748b;
+}
+
+.add-chapter-btn{
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    padding: 12px 18px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.manga-detail-card{
+    background: white;
+    border: 1px solid #d9e1ec;
+    border-radius: 5px;
+    padding: 25px;
+
+    display: grid;
+    grid-template-columns: 110px 1.4fr 1.6fr 1fr;
+    gap: 25px;
+    align-items: start;
+
+    margin-bottom: 20px;
+}
+
+.manga-detail-card > img{
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.manga-summary h3{
+    margin: 0 0 12px;
+}
+
+.manga-summary p,
+.manga-meta p{
+    color: #475569;
+    margin: 0 0 13px;
+}
+
+.tag{
+    display: inline-block;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.green{
+    background: #22c55e;
+}
+
+.orange{
+    background: #f97316;
+}
+
+.genre-tag{
+    display: inline-block;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 3px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.chapter-search{
+    background: white;
+    border: 1px solid #d9e1ec;
+    border-radius: 5px;
+    padding: 18px;
+    margin-bottom: 20px;
+
+    display: flex;
+}
+
+.chapter-search input{
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #d9e1ec;
+}
+
+.chapter-search button{
+    width: 130px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    font-weight: 700;
+}
+
+.chapter-search .reload-btn{
+    width: 50px;
+    background: white;
+    color: #172033;
+    border: 1px solid #64748b;
+}
+
+.chapter-table-box{
+    background: white;
+    border: 1px solid #d9e1ec;
+    border-radius: 5px;
+    padding: 25px;
+}
+
+.chapter-table{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.chapter-table th,
+.chapter-table td{
+    border-bottom: 1px solid #d9e1ec;
+    padding: 16px 12px;
+    text-align: left;
+}
+
+.chapter-table th{
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.edit-btn,
+.delete-btn{
+    border: none;
+    color: white;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-btn{
+    background: #2563eb;
+}
+
+.delete-btn{
+    background: #ef4444;
+}
+
+.table-footer{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.pagination{
+    display: flex;
+    gap: 8px;
+}
+
+.pagination a{
+    text-decoration: none;
+    color: #94a3b8;
+    padding: 8px 11px;
+    border-radius: 4px;
+}
+
+.pagination a.active{
+    background: #2563eb;
+    color: white;
+}
+.pagination button{
+    border: none;
+    background: #2d384a;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.pagination button.active{
+    background: #2563eb;
+}
+
+.pagination button:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.chapter-top img{
+	width: 20px;
+}
+.edit-btn a{
+	color: aliceblue;
+	text-decoration: none;
+}
+body{
+    margin: 0;
+    background: #0d1826;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+}
+
+.chapter-admin-page{
+    padding: 30px;
+    background: #0d1826;
+    min-height: 100vh;
+}
+
+.chapter-top{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.chapter-top h2{
+    color: #ffffff;
+    margin: 0;
+}
+
+.chapter-top p{
+    color: #cbd5e1;
+}
+
+.chapter-top img{
+    width: 22px;
+    filter: brightness(0) invert(1);
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.add-chapter-btn{
+    background: #16c756;
+    color: #ffffff;
+    border: none;
+    padding: 13px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.add-chapter-btn:hover{
+    background: #12a947;
+}
+
+.manga-detail-card,
+.chapter-search,
+.chapter-table-box{
+    background: #1d2a3b;
+    border: 1px solid #2f4058;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+.manga-detail-card{
+    display: grid;
+    grid-template-columns: 110px 1.3fr 1.3fr 1fr;
+    gap: 25px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.manga-detail-card > img{
+    width: 100px;
+    height: 145px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.manga-summary h3{
+    color: #ffffff;
+    margin-top: 0;
+}
+
+.manga-summary p,
+.manga-meta p{
+    color: #cbd5e1;
+}
+
+.manga-meta b{
+    color: #ffffff;
+}
+
+.chapter-search{
+    display: flex;
+    padding: 18px;
+    margin-bottom: 25px;
+}
+
+.chapter-search input{
+    flex: 1;
+    background: #ffffff;
+    border: none;
+    padding: 13px;
+    border-radius: 4px 0 0 4px;
+}
+
+.chapter-search button{
+    background: #16c756;
+    color: #ffffff;
+    border: none;
+    padding: 0 28px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.chapter-search .reload-btn{
+    background: #334155;
+    border-radius: 0 4px 4px 0;
+}
+
+.chapter-table-box{
+    padding: 25px;
+}
+
+.chapter-table{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.chapter-table th{
+    background: #24344a;
+    color: #ffffff;
+    padding: 15px;
+    border-bottom: 1px solid #33465f;
+}
+
+.chapter-table td{
+    color: #ffffff;
+    padding: 16px;
+    border-bottom: 1px solid #33465f;
+    text-align: center;
+}
+
+.tag,
+.genre-tag{
+    display: inline-block;
+    padding: 6px 9px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 3px;
+}
+
+.tag.green{
+    background: #16c756;
+    color: #ffffff;
+}
+
+.tag.orange{
+    background: #ff7a1a;
+    color: #ffffff;
+}
+
+.tag.gray{
+    background: #64748b;
+    color: #ffffff;
+}
+
+.genre-tag{
+    background: #2f60e8;
+    color: #ffffff;
+}
+
+.edit-btn,
+.delete-btn{
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.edit-btn{
+    background: #2f60e8;
+}
+
+.delete-btn{
+    background: #ef4444;
+}
+
+.table-footer{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #ffffff;
+    padding-top: 18px;
+}
+
+.pagination a{
+    background: #334155;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 9px 13px;
+    border-radius: 6px;
+    margin-left: 5px;
+}
+
+.pagination .active{
+    background: #16c756;
+}
+
+.footer{
+    background: #0d1826;
+    color: #cbd5e1;
+    padding: 20px 30px;
+}
