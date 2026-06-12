@@ -599,10 +599,10 @@ body{
 
 .chapter-watermark{
     position:absolute !important;
-    top:5px !important;
-    right:5px !important;
+    top:20px !important;
+    right:20px !important;
 
-    width:250px !important;
+    width:260px !important;
     height:auto !important;
 
     opacity:.5 !important;
