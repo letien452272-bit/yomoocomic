@@ -197,12 +197,15 @@ function renderChapter(){
         image.loading = "lazy";
 
         var logo = document.createElement("img");
-        logo.className = "chapter-watermark";
-        logo.src = "Image/LOGO WEB.png";
-        logo.alt = "YOMOO";
+		logo.className = "chapter-watermark";
+		logo.src = "Image/LOGO WEB.png";
+		logo.alt = "YOMOO";
 
-        wrap.appendChild(image);
-        wrap.appendChild(logo);
+		logo.style.width = "300px";
+		logo.style.opacity = "0.6";
+
+		wrap.appendChild(image);
+		wrap.appendChild(logo);
 
         chapterImages.appendChild(wrap);
 
