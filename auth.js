@@ -2,102 +2,125 @@ var DEFAULT_AVATAR = "Image/user.svg";
 var ADMIN_EMAIL = "letien.452272@gmail.com";
 
 var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
-var R2_PUBLIC_URL = "https://pub-feac672c19c646b4b97ff6a2ac5ce733.r2.dev";
 
-function getUsers(){
-    return JSON.parse(localStorage.getItem("users")) || [];
+function getSupabase(){
+    return window.supabaseClient || window.supabase || null;
 }
 
-function saveUsers(users){
-    localStorage.setItem("users", JSON.stringify(users));
+async function getCurrentUser(){
+    var db = getSupabase();
+
+    if(!db){
+        return null;
+    }
+
+    var result = await db.auth.getUser();
+
+    if(result.error || !result.data.user){
+        return null;
+    }
+
+    var user = result.data.user;
+
+    return {
+        id: user.id,
+        email: user.email,
+        username:
+            user.user_metadata?.username ||
+            user.user_metadata?.name ||
+            user.email,
+        avatar:
+            user.user_metadata?.avatar ||
+            user.user_metadata?.avatar_url ||
+            DEFAULT_AVATAR,
+        role: String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase() ? "admin" : "user",
+        raw: user
+    };
 }
 
-function getCurrentUser(){
-    return JSON.parse(localStorage.getItem("currentUser"));
-}
+async function registerUser(username, email, password){
+    var db = getSupabase();
 
-function setCurrentUser(user){
-    localStorage.setItem("currentUser", JSON.stringify(user));
-}
+    if(!db){
+        alert("Lỗi: Chưa load supabase.js trước auth.js");
+        return false;
+    }
 
-function logout(){
-    localStorage.removeItem("currentUser");
-    window.location.href = "Loging.html";
-}
-
-function registerUser(username, email, password){
-    var users = getUsers();
-
-    username = username.trim();
-    email = email.trim().toLowerCase();
-    password = password.trim();
+    username = String(username || "").trim();
+    email = String(email || "").trim().toLowerCase();
+    password = String(password || "").trim();
 
     if(!username || !email || !password){
         alert("Vui lòng nhập đầy đủ thông tin.");
         return false;
     }
 
-    var existed = users.find(function(user){
-        return user.email === email;
+    var result = await db.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+            data: {
+                username: username,
+                avatar: DEFAULT_AVATAR
+            }
+        }
     });
 
-    if(existed){
-        alert("Email này đã được đăng ký.");
+    if(result.error){
+        alert("Lỗi đăng ký: " + result.error.message);
+        console.log(result.error);
         return false;
     }
 
-    var role = email === ADMIN_EMAIL ? "admin" : "user";
-
-    var newUser = {
-        id: Date.now(),
-        username: username,
-        email: email,
-        password: password,
-        role: role,
-        avatar: DEFAULT_AVATAR,
-        following: []
-    };
-
-    users.push(newUser);
-    saveUsers(users);
-
-    alert("Đăng ký thành công.");
+    alert("Đăng ký thành công. Nếu Supabase yêu cầu xác minh email, hãy kiểm tra email trước khi đăng nhập.");
     window.location.href = "Loging.html";
     return true;
 }
 
-function loginUser(email, password){
-    var users = getUsers();
+async function loginUser(email, password){
+    var db = getSupabase();
 
-    email = email.trim().toLowerCase();
-    password = password.trim();
+    if(!db){
+        alert("Lỗi: Chưa load supabase.js trước auth.js");
+        return false;
+    }
+
+    email = String(email || "").trim().toLowerCase();
+    password = String(password || "").trim();
 
     if(!email || !password){
         alert("Vui lòng nhập email và mật khẩu.");
         return false;
     }
 
-    var user = users.find(function(item){
-        return item.email === email && item.password === password;
+    var result = await db.auth.signInWithPassword({
+        email: email,
+        password: password
     });
 
-    if(!user){
+    if(result.error){
         alert("Sai email hoặc mật khẩu.");
+        console.log(result.error);
         return false;
     }
 
-    user.avatar = user.avatar || DEFAULT_AVATAR;
-    user.following = user.following || [];
-
-    setCurrentUser(user);
     alert("Đăng nhập thành công.");
-
     window.location.href = "CW.html";
     return true;
 }
 
-function requireLogin(){
-    var user = getCurrentUser();
+async function logout(){
+    var db = getSupabase();
+
+    if(db){
+        await db.auth.signOut();
+    }
+
+    window.location.href = "CW.html";
+}
+
+async function requireLogin(){
+    var user = await getCurrentUser();
 
     if(!user){
         alert("Bạn cần đăng nhập để dùng chức năng này.");
@@ -108,17 +131,21 @@ function requireLogin(){
     return true;
 }
 
-function requireAdmin(){
-    var user = getCurrentUser();
+async function isAdmin(){
+    var user = await getCurrentUser();
 
     if(!user){
-        alert("Bạn cần đăng nhập tài khoản Admin.");
-        window.location.href = "Loging.html";
         return false;
     }
 
-    if(user.role !== "admin"){
-        alert("Tài khoản này không có quyền Admin.");
+    return String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+async function requireAdmin(){
+    var admin = await isAdmin();
+
+    if(!admin){
+        alert("Bạn không có quyền truy cập!");
         window.location.href = "CW.html";
         return false;
     }
@@ -126,45 +153,38 @@ function requireAdmin(){
     return true;
 }
 
-function isAdmin(){
-    var user = getCurrentUser();
-    return user && user.role === "admin";
-}
+async function updateUserMenu(){
+    var user = await getCurrentUser();
 
-function isUser(){
-    var user = getCurrentUser();
-    return user && user.role === "user";
-}
-
-function updateUserMenu(){
-    var user = getCurrentUser();
     var userBtn = document.getElementById("user-btn");
     var userDropdown = document.getElementById("user-dropdown");
 
-    if(!userBtn) return;
+    if(!userBtn){
+        return;
+    }
 
     var avatar = userBtn.querySelector("img");
     var name = userBtn.querySelector("span");
 
     if(avatar){
-        avatar.src = user ? (user.avatar || DEFAULT_AVATAR) : DEFAULT_AVATAR;
+        avatar.src = user ? user.avatar : DEFAULT_AVATAR;
     }
 
     if(name){
         name.textContent = user ? user.username : "Khách";
     }
 
-    if(!userDropdown) return;
+    if(userDropdown){
+        var headName = userDropdown.querySelector(".user-head h3");
+        var headEmail = userDropdown.querySelector(".user-head p");
 
-    var headName = userDropdown.querySelector(".user-head h3");
-    var headEmail = userDropdown.querySelector(".user-head p");
+        if(headName){
+            headName.textContent = user ? user.username : "Khách";
+        }
 
-    if(headName){
-        headName.textContent = user ? user.username : "Khách";
-    }
-
-    if(headEmail){
-        headEmail.textContent = user ? user.email : "Chưa đăng nhập";
+        if(headEmail){
+            headEmail.textContent = user ? user.email : "Chưa đăng nhập";
+        }
     }
 
     var adminLink = document.getElementById("adminLink");
@@ -213,63 +233,72 @@ function updateUserMenu(){
     }
 }
 
-function updateUser(userUpdate){
-    var user = getCurrentUser();
+async function updateUser(userUpdate){
+    var db = getSupabase();
 
-    if(!user) return;
+    if(!db){
+        alert("Lỗi Supabase.");
+        return;
+    }
 
-    Object.assign(user, userUpdate);
-    setCurrentUser(user);
+    var user = await getCurrentUser();
 
-    var users = getUsers();
+    if(!user){
+        alert("Bạn cần đăng nhập.");
+        return;
+    }
 
-    users = users.map(function(item){
-        if(item.id === user.id){
-            return user;
-        }
+    var newMetadata = {
+        username: userUpdate.username || user.username,
+        avatar: userUpdate.avatar || user.avatar
+    };
 
-        return item;
+    var result = await db.auth.updateUser({
+        data: newMetadata
     });
 
-    saveUsers(users);
-    updateUserMenu();
-}
+    if(result.error){
+        alert("Lỗi cập nhật tài khoản: " + result.error.message);
+        console.log(result.error);
+        return;
+    }
 
-function makeSafeAvatarName(fileName){
-    var ext = fileName.split(".").pop().toLowerCase();
-    return Date.now() + "-" + Math.random().toString(36).substring(2) + "." + ext;
+    await updateUserMenu();
 }
 
 async function uploadAvatarToR2(file){
-    var user = getCurrentUser();
+    var user = await getCurrentUser();
 
     if(!user){
         throw new Error("Bạn cần đăng nhập.");
     }
 
-    var safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, "-");
-    var fileName = makeSafeAvatarName(file.name);
+    var formData = new FormData();
 
-    var r2Path = "avatars/" + safeEmail + "/" + fileName;
-    var uploadUrl = R2_UPLOAD_URL + "/" + r2Path;
+    formData.append("file", file);
+    formData.append("type", "avatar");
 
-    var response = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-            "Content-Type": file.type || "image/webp"
-        }
+    var response = await fetch(R2_UPLOAD_URL, {
+        method: "POST",
+        body: formData
     });
 
     if(!response.ok){
-        throw new Error("Upload avatar lên R2 thất bại.");
+        var errorText = await response.text();
+        throw new Error(errorText || "Upload avatar lên R2 thất bại.");
     }
 
-    return R2_PUBLIC_URL + "/" + r2Path;
+    var data = await response.json();
+
+    if(!data.url){
+        throw new Error("Worker không trả về URL avatar.");
+    }
+
+    return data.url;
 }
 
 async function changeAvatar(input){
-    var user = getCurrentUser();
+    var user = await getCurrentUser();
 
     if(!user){
         alert("Bạn cần đăng nhập để đổi avatar.");
@@ -279,7 +308,9 @@ async function changeAvatar(input){
 
     var file = input.files[0];
 
-    if(!file) return;
+    if(!file){
+        return;
+    }
 
     if(!file.type.startsWith("image/")){
         alert("Vui lòng chọn file ảnh.");
@@ -289,7 +320,7 @@ async function changeAvatar(input){
     try{
         var avatarUrl = await uploadAvatarToR2(file);
 
-        updateUser({
+        await updateUser({
             avatar: avatarUrl
         });
 
@@ -306,15 +337,15 @@ async function changeAvatar(input){
     }
 }
 
-function resetAvatar(){
-    var user = getCurrentUser();
+async function resetAvatar(){
+    var user = await getCurrentUser();
 
     if(!user){
         alert("Bạn cần đăng nhập.");
         return;
     }
 
-    updateUser({
+    await updateUser({
         avatar: DEFAULT_AVATAR
     });
 
@@ -327,8 +358,8 @@ function resetAvatar(){
     alert("Đã đổi về avatar mặc định.");
 }
 
-function followStory(storyId){
-    var user = getCurrentUser();
+async function followStory(storyId){
+    var user = await getCurrentUser();
 
     if(!user){
         alert("Bạn cần đăng nhập để theo dõi truyện.");
@@ -336,61 +367,45 @@ function followStory(storyId){
         return;
     }
 
-    if(!user.following){
-        user.following = [];
-    }
+    var followList = JSON.parse(localStorage.getItem("followList")) || [];
 
-    if(!user.following.includes(storyId)){
-        user.following.push(storyId);
-        updateUser(user);
-        alert("Đã theo dõi truyện.");
-    }else{
-        alert("Bạn đã theo dõi truyện này rồi.");
-    }
-}
-
-function unfollowStory(storyId){
-    var user = getCurrentUser();
-
-    if(!user || !user.following) return;
-
-    user.following = user.following.filter(function(id){
-        return id !== storyId;
+    var existed = followList.some(function(item){
+        return Number(item.id || item.manga_id || item.mangaId) === Number(storyId);
     });
 
-    updateUser(user);
+    if(existed){
+        alert("Bạn đã theo dõi truyện này rồi.");
+        return;
+    }
+
+    followList.push({
+        id: Number(storyId),
+        seenChapter: 0,
+        latestChapter: 0,
+        createdAt: new Date().toISOString()
+    });
+
+    localStorage.setItem("followList", JSON.stringify(followList));
+    alert("Đã theo dõi truyện.");
+}
+
+async function unfollowStory(storyId){
+    var user = await getCurrentUser();
+
+    if(!user){
+        return;
+    }
+
+    var followList = JSON.parse(localStorage.getItem("followList")) || [];
+
+    followList = followList.filter(function(item){
+        return Number(item.id || item.manga_id || item.mangaId) !== Number(storyId);
+    });
+
+    localStorage.setItem("followList", JSON.stringify(followList));
     alert("Đã bỏ theo dõi truyện.");
 }
 
 document.addEventListener("DOMContentLoaded", function(){
     updateUserMenu();
 });
-function getCurrentUser(){
-    try{
-        return JSON.parse(localStorage.getItem("currentUser")) || null;
-    }catch(e){
-        return null;
-    }
-}
-
-function isAdmin(){
-    var user = getCurrentUser();
-
-    if(!user) return false;
-
-    return user.role === "admin" ||
-           user.email === "letien.452272@gmail.com";
-}
-
-function requireAdmin(){
-    if(!isAdmin()){
-        alert("Bạn không có quyền truy cập!");
-        window.location.href = "CW.html";
-    }
-}
-
-async function logout(){
-    await supabase.auth.signOut();
-    localStorage.removeItem("currentUser");
-    window.location.href = "CW.html";
-}
