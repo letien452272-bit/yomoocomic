@@ -196,13 +196,7 @@ function renderChapter(){
         image.alt = manga.title || "";
         image.loading = "lazy";
 
-        var logo = document.createElement("img");
-        logo.className = "chapter-watermark";
-        logo.src = "Image/LOGO WEB.png";
-        logo.alt = "YOMOO";
-
         wrap.appendChild(image);
-        wrap.appendChild(logo);
 
         chapterImages.appendChild(wrap);
 
