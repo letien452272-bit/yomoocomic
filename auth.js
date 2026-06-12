@@ -4,11 +4,45 @@ var ADMIN_EMAIL = "letien.452272@gmail.com";
 var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
 
 function getSupabase(){
-    return window.supabaseClient || window.supabase || null;
+    if(window.supabaseClient){
+        return window.supabaseClient;
+    }
+
+    if(window.supabase && window.supabase.auth){
+        return window.supabase;
+    }
+
+    if(typeof supabase !== "undefined" && supabase.auth){
+        return supabase;
+    }
+
+    return null;
+}
+
+async function waitForSupabase(){
+    var db = getSupabase();
+
+    if(db){
+        return db;
+    }
+
+    for(var i = 0; i < 20; i++){
+        await new Promise(function(resolve){
+            setTimeout(resolve, 100);
+        });
+
+        db = getSupabase();
+
+        if(db){
+            return db;
+        }
+    }
+
+    return null;
 }
 
 async function getCurrentUser(){
-    var db = getSupabase();
+    var db = await waitForSupabase();
 
     if(!db){
         return null;
@@ -39,7 +73,7 @@ async function getCurrentUser(){
 }
 
 async function registerUser(username, email, password){
-    var db = getSupabase();
+    var db = await waitForSupabase();
 
     if(!db){
         alert("Lỗi: Chưa load supabase.js trước auth.js");
@@ -72,13 +106,23 @@ async function registerUser(username, email, password){
         return false;
     }
 
-    alert("Đăng ký thành công. Nếu Supabase yêu cầu xác minh email, hãy kiểm tra email trước khi đăng nhập.");
+    if(result.data && result.data.user){
+        await db.from("profiles").upsert({
+            id: result.data.user.id,
+            email: email,
+            username: username,
+            avatar: DEFAULT_AVATAR,
+            role: email === ADMIN_EMAIL.toLowerCase() ? "admin" : "user"
+        });
+    }
+
+    alert("Đăng ký thành công.");
     window.location.href = "Loging.html";
     return true;
 }
 
 async function loginUser(email, password){
-    var db = getSupabase();
+    var db = await waitForSupabase();
 
     if(!db){
         alert("Lỗi: Chưa load supabase.js trước auth.js");
@@ -110,7 +154,7 @@ async function loginUser(email, password){
 }
 
 async function logout(){
-    var db = getSupabase();
+    var db = await waitForSupabase();
 
     if(db){
         await db.auth.signOut();
@@ -234,7 +278,7 @@ async function updateUserMenu(){
 }
 
 async function updateUser(userUpdate){
-    var db = getSupabase();
+    var db = await waitForSupabase();
 
     if(!db){
         alert("Lỗi Supabase.");
@@ -262,6 +306,14 @@ async function updateUser(userUpdate){
         console.log(result.error);
         return;
     }
+
+    await db.from("profiles").upsert({
+        id: user.id,
+        email: user.email,
+        username: newMetadata.username,
+        avatar: newMetadata.avatar,
+        role: user.role
+    });
 
     await updateUserMenu();
 }
