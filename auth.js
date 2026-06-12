@@ -107,13 +107,9 @@ async function registerUser(username, email, password){
     }
 
     if(result.data && result.data.user){
-        await db.from("profiles").upsert({
-            id: result.data.user.id,
-            email: email,
-            username: username,
-            avatar: DEFAULT_AVATAR,
-            role: email === ADMIN_EMAIL.toLowerCase() ? "admin" : "user"
-        });
+        if(result.data && result.data.user){
+    console.log("User created:", result.data.user);
+}
     }
 
     alert("Đăng ký thành công.");
