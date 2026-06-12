@@ -198,7 +198,11 @@ document.getElementById("registerBtn").onclick = function(){
         taoCaptcha();
         return;
     }
-
+console.log(
+    document.getElementById("regName").value,
+    document.getElementById("regEmail").value,
+    document.getElementById("regPassword").value
+);
     registerUser(
         document.getElementById("regName").value,
         document.getElementById("regEmail").value,
