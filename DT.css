@@ -309,7 +309,26 @@ body{
     margin:20px 0;
     flex-wrap:wrap;
 }
+.chapter-image-wrap{
+    position:relative;
+    width:100%;
+}
 
+.chapter-image-wrap > img:first-child{
+    width:100%;
+    display:block;
+}
+
+.chapter-watermark{
+    position:absolute;
+    top:20px;
+    right:20px;
+    width:220px;
+    height:auto;
+    opacity:.5;
+    z-index:10;
+    pointer-events:none;
+}
 .comment-pagination button{
     min-width:34px;
     height:34px;
