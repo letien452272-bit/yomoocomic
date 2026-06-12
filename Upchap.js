@@ -306,7 +306,7 @@ async function addWatermarkToImage(file){
 
     /* LOGO GÓC PHẢI TRÊN */
 
-    var cornerLogoWidth = 180;
+    var cornerLogoWidth = 260;
     var cornerLogoHeight =
         logo.height * (cornerLogoWidth / logo.width);
 
