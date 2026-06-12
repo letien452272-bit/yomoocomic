@@ -195,9 +195,7 @@ function renderChapter(){
         image.src = imageUrl;
         image.alt = manga.title || "";
         image.loading = "lazy";
-
-        wrap.appendChild(image);
-
+		wrap.appendChild(image);
         chapterImages.appendChild(wrap);
 
         if(index === Math.floor(images.length / 2) - 1){
