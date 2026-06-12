@@ -1,0 +1,715 @@
+/* ================= MOBILE ================= */
+@media screen and (max-width:768px){
+
+    html,
+    body{
+        width:100%;
+        max-width:100%;
+        overflow-x:hidden;
+    }
+
+    .wapper{
+        width:100%;
+        max-width:100%;
+        box-sizing:border-box;
+    }
+
+    .up-header{
+        padding:10px 6px !important;
+        position:relative !important;
+    }
+
+    .up-header table,
+    .up-header tbody,
+    .up-header tr{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        flex-wrap:nowrap !important;
+        gap:8px !important;
+        width:100% !important;
+    }
+
+    .up-header td{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:auto !important;
+        flex:none !important;
+    }
+
+    .logo a{
+        display:block !important;
+    }
+
+    .logo img{
+        width:110px !important;
+        height:auto !important;
+        display:block !important;
+    }
+
+    .up-header h3{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:8px !important;
+        margin:0 !important;
+        font-size:14px !important;
+        white-space:nowrap !important;
+        flex-wrap:nowrap !important;
+    }
+
+    /* Ẩn Trang Chủ + Đã Hoàn Thành */
+    .up-header h3 > a[href="CW.html"],
+    .up-header h3 > a[href="TheLoai.html?status=Đã hoàn thành"]{
+        display:none !important;
+    }
+
+    .genre-menu{
+        display:inline-flex !important;
+        align-items:center !important;
+    }
+
+    #genre-btn{
+        display:inline-flex !important;
+        align-items:center !important;
+        gap:3px !important;
+    }
+
+    .arrow{
+        width:10px !important;
+        height:10px !important;
+    }
+
+    .user-menu{
+        margin-left:6px !important;
+        flex:none !important;
+    }
+
+    .user-btn{
+        display:flex !important;
+        align-items:center !important;
+        gap:4px !important;
+    }
+
+    .user-btn img{
+        width:38px !important;
+        height:38px !important;
+    }
+
+    .user-btn span:first-of-type{
+        display:none !important;
+    }
+
+    .user-arrow{
+        font-size:13px !important;
+    }
+
+    /* Search icon mở/đóng */
+    .search{
+        position:relative !important;
+        width:34px !important;
+        height:34px !important;
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        margin:0 !important;
+    }
+
+    .search input{
+        position:absolute !important;
+        right:38px !important;
+        top:0 !important;
+        width:0 !important;
+        height:34px !important;
+        opacity:0 !important;
+        padding:0 !important;
+        border:2px solid #ff4d8d !important;
+        border-radius:25px !important;
+        background:white !important;
+        color:#111 !important;
+        box-sizing:border-box !important;
+        transition:all .25s ease !important;
+    }
+
+    .search.active input{
+        width:220px !important;
+        opacity:1 !important;
+        padding:0 14px !important;
+    }
+
+    #searchBtn{
+        width:34px !important;
+        height:34px !important;
+        border:none !important;
+        background:transparent !important;
+        padding:0 !important;
+        cursor:pointer !important;
+        z-index:10000 !important;
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+    }
+
+    #searchBtn img{
+        width:18px !important;
+        height:18px !important;
+        filter:brightness(0) invert(1) !important;
+    }
+
+    .user-dropdown{
+        width:220px !important;
+        right:0 !important;
+        left:auto !important;
+        transform:none !important;
+        font-size:14px !important;
+        border-radius:8px !important;
+    }
+
+    .user-head{
+        padding:10px !important;
+    }
+
+    .user-head h3{
+        font-size:14px !important;
+    }
+
+    .user-head p{
+        font-size:12px !important;
+        word-break:break-all !important;
+    }
+
+    .user-money{
+        padding:8px !important;
+        font-size:13px !important;
+    }
+
+    .user-dropdown a{
+        padding:9px 12px !important;
+        font-size:14px !important;
+    }
+
+    .user-dropdown a img{
+        width:17px !important;
+        height:17px !important;
+        margin-right:5px !important;
+    }
+
+    .genre-dropdown{
+        width:260px !important;
+        left:50% !important;
+        transform:translateX(-50%) !important;
+        padding:12px 14px !important;
+        gap:8px 18px !important;
+        grid-template-columns:repeat(2, 1fr) !important;
+        font-size:13px !important;
+        border-radius:8px !important;
+    }
+
+    .genre-dropdown a{
+        font-size:13px !important;
+        padding:4px 0 !important;
+        white-space:nowrap !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    /* Hai ô lọc */
+    .filter-bar{
+        display:flex !important;
+        justify-content:center !important;
+        gap:12px !important;
+    }
+
+    .filter-bar select{
+        width:140px !important;
+        height:40px !important;
+        font-size:14px !important;
+    }
+
+    /* Chưa có truyện nào */
+    #allComicList{
+        display:flex !important;
+        justify-content:center !important;
+        align-items:center !important;
+        text-align:center !important;
+        min-height:120px !important;
+    }
+
+    #allComicList p{
+        width:100%;
+        text-align:center !important;
+        font-size:18px !important;
+        margin:0 !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .filter-bar{
+        display:flex !important;
+        justify-content:center !important;
+        gap:10px !important;
+    }
+
+    .filter-bar select{
+        width:170px !important;
+    	height:36px !important;   /* thấp hơn */
+    	height:36px !important;   /* thấp hơn */
+        font-size:14px !important;
+        padding:0 10px !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .profile-page{
+        width:100% !important;
+        padding:0 10px !important;
+        box-sizing:border-box !important;
+        overflow:hidden !important;
+    }
+
+    .profile-card{
+        width:100% !important;
+        max-width:100% !important;
+        box-sizing:border-box !important;
+        overflow:hidden !important;
+    }
+
+    .profile-form{
+        display:grid !important;
+        grid-template-columns:1fr !important;
+        gap:14px !important;
+        width:100% !important;
+        box-sizing:border-box !important;
+    }
+
+    .profile-form .form-group{
+        width:100% !important;
+        max-width:100% !important;
+        box-sizing:border-box !important;
+    }
+
+    .profile-form input,
+    .profile-form a{
+        width:100% !important;
+        max-width:100% !important;
+        box-sizing:border-box !important;
+    }
+
+    .profile-header{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:12px !important;
+        align-items:center !important;
+    }
+
+    .profile-actions{
+        display:flex !important;
+        justify-content:center !important;
+        gap:10px !important;
+        width:100% !important;
+    }
+
+    .profile-actions button{
+        width:120px !important;
+        height:36px !important;
+        font-size:13px !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .profile-avatar img{
+        width:60px !important;
+        height:60px !important;
+    }
+
+    .profile-avatar button{
+        padding:8px 12px !important;
+        font-size:12px !important;
+    }
+
+    .profile-header h3{
+        font-size:16px !important;
+    }
+
+    .profile-title{
+        font-size:18px !important;
+    }
+
+    .profile-form label{
+        font-size:14px !important;
+    }
+
+    .profile-form input{
+        height:36px !important;
+        font-size:13px !important;
+    }
+
+    .logout-btn{
+        height:36px !important;
+        font-size:13px !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .breadcrumb{
+        width:85% !important;
+
+        height:40px !important;
+        padding:0 12px !important;
+
+        margin:12px auto !important;
+
+        border-radius:20px !important;
+
+        font-size:14px !important;
+    }
+
+    .breadcrumb img{
+        width:16px !important;
+        height:16px !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .follow-title{
+        width:85% !important;
+        height:50px !important;
+
+        margin:15px auto !important;
+
+        border-radius:18px !important;
+
+        font-size:18px !important;
+        font-weight:700 !important;
+
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+
+        gap:8px !important;
+    }
+
+    .follow-title img{
+        width:20px !important;
+        height:20px !important;
+    }
+
+    .clear-follow-btn{
+        width:120px !important;
+        height:40px !important;
+
+        font-size:14px !important;
+
+        margin-left:20px !important;
+        border-radius:20px !important;
+    }
+
+}
+/* THANH DANH SÁCH THEO DÕI */
+.follow-title{
+    width:320px;
+    height:50px;
+
+    margin:20px auto 10px auto;
+
+    border-radius:18px;
+
+    font-size:22px;
+    font-weight:700;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+/* NÚT XÓA TẤT CẢ */
+.clear-follow-btn{
+    width:130px !important;
+    height:40px !important;
+
+    white-space:nowrap !important;
+
+    font-size:14px !important;
+    line-height:40px !important;
+
+    padding:0 15px !important;
+}
+/* MOBILE */
+@media screen and (max-width:768px){
+
+    .follow-title{
+        width:260px !important;
+        height:42px !important;
+
+        font-size:18px !important;
+        border-radius:15px !important;
+
+        margin:15px auto 8px auto !important;
+    }
+
+    .follow-title img{
+        width:18px !important;
+        height:18px !important;
+    }
+
+    .clear-follow-btn{
+        width:105px !important;
+        height:34px !important;
+
+        font-size:13px !important;
+
+        margin:0 auto 15px auto !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .genre-dropdown{
+        display:none !important;
+    }
+
+    .genre-dropdown.show{
+        display:grid !important;
+    }
+
+    .up-header h3{
+        overflow:visible !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    .notify-page-title{
+        font-size:20px !important;
+        gap:8px !important;
+
+        margin-top:20px !important;
+        margin-bottom:35px !important;
+
+        text-align:center !important;
+    }
+
+    .notify-page-title img{
+        width:24px !important;
+        height:24px !important;
+    }
+
+}
+    .rank-meta{
+        width:100% !important;
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        font-size:11px !important;
+    }
+
+    .rank-chapter{
+        color:#fff !important;
+        font-size:11px !important;
+        white-space:nowrap !important;
+    }
+
+    .rank-view{
+        color:#fff !important;
+        font-size:11px !important;
+        display:flex !important;
+        align-items:center !important;
+        gap:3px !important;
+        white-space:nowrap !important;
+    }
+
+    .rank-view img{
+        width:11px !important;
+        height:11px !important;
+    }
+    .more-icon{
+        font-size:28px !important;
+        line-height:1 !important;
+    }
+
+.rank-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:6px;
+    width:100%;
+}
+
+.rank-chapter{
+    font-size:12px;
+    color:#fff;
+}
+
+.rank-view{
+    font-size:12px;
+    color:#fff;
+
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
+.chapter-status{
+    color:#9ee493 !important;
+}
+@media screen and (max-width:768px){
+
+    #comicList{
+        display:flex !important;
+        flex-direction:row !important;
+        justify-content:flex-start !important;
+        align-items:flex-start !important;
+        gap:10px !important;
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+        padding:0 10px 10px !important;
+    }
+
+    .new-comic-card{
+        width:90px !important;
+        min-width:90px !important;
+        height:168px !important;
+        background:#33415a !important;
+        border-radius:8px !important;
+        padding:6px !important;
+        box-sizing:border-box !important;
+        overflow:hidden !important;
+        text-decoration:none !important;
+        color:#fff !important;
+    }
+
+    .new-comic-cover{
+        width:78px !important;
+        height:108px !important;
+        margin:0 auto !important;
+        border-radius:6px !important;
+        overflow:hidden !important;
+        position:relative !important;
+    }
+
+    .new-comic-cover img{
+        width:100% !important;
+        height:100% !important;
+        object-fit:cover !important;
+        display:block !important;
+    }
+
+    .new-comic-title{
+        font-size:10.5px !important;
+        line-height:14px !important;
+        height:14px !important;
+        margin:5px 0 6px !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+        text-overflow:ellipsis !important;
+        text-align:left !important;
+    }
+
+    .new-comic-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        font-size:10px !important;
+        color:#7cff8b !important;
+    }
+
+    .new-comic-view{
+        display:flex !important;
+        align-items:center !important;
+        gap:2px !important;
+        color:#ffd54f !important;
+    }
+
+    .new-comic-view img{
+        width:10px !important;
+        height:10px !important;
+    }
+
+    .new-more-card{
+        display:flex !important;
+        flex-direction:column !important;
+        justify-content:center !important;
+        align-items:center !important;
+    }
+
+    .new-more-card p{
+        margin:0 !important;
+        font-size:13px !important;
+        font-weight:700 !important;
+    }
+}
+@media screen and (max-width:768px){
+	    /* Bảng xếp hạng mobile */
+    .rank-item{
+        display:flex !important;
+        flex-direction:column !important;
+        align-items:center !important;
+        justify-content:flex-start !important;
+        gap:6px !important;
+
+        width:110px !important;
+        min-height:170px !important;
+        padding:8px !important;
+    }
+
+    .rank-number{
+        position:static !important;
+        order:1 !important;
+        font-size:18px !important;
+        font-weight:700 !important;
+        margin-bottom:2px !important;
+    }
+
+    .rank-item > img{
+        order:2 !important;
+        width:80px !important;
+        height:110px !important;
+        object-fit:cover !important;
+        border-radius:8px !important;
+    }
+
+    .rank-info{
+        order:3 !important;
+        text-align:center !important;
+        width:100% !important;
+    }
+
+    .rank-info h3{
+        font-size:12px !important;
+        line-height:1.3 !important;
+        margin:3px 0 !important;
+    }
+
+    .rank-view{
+        justify-content:center !important;
+        font-size:12px !important;
+    }
+
+}
+@media screen and (max-width:768px){
+
+    #comicList .time-badge{
+        top:3px !important;
+        left:3px !important;
+
+        width:auto !important;
+        max-width:58px !important;
+
+        padding:2px 5px !important;
+
+        font-size:9px !important;
+        line-height:11px !important;
+
+        border-radius:4px !important;
+
+        white-space:normal !important;
+        text-align:center !important;
+    }
+}
