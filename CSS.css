@@ -1277,4 +1277,15 @@ body{
         width:10px !important;
         height:10px !important;
     }
+.ad-banner{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:20px auto;
+}
 
+@media (max-width:768px){
+    .ad-728{
+        display:none;
+    }
+}
