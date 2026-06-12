@@ -8,11 +8,29 @@ var coverText = document.getElementById("coverText");
 var selectedCoverFile = null;
 var oldCoverUrl = "";
 
-var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
+/* Nếu Worker của bạn upload bằng /upload thì giữ dòng này */
+var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev/upload";
+
+/* ================== XỬ LÝ THÊM / SỬA TRUYỆN ================== */
 
 var urlParams = new URLSearchParams(window.location.search);
-var editMangaId = Number(urlParams.get("edit")) || Number(localStorage.getItem("editMangaId"));
+var editParam = urlParams.get("edit");
+
+var editMangaId = editParam ? Number(editParam) : 0;
 var isEditMode = !!editMangaId;
+
+/* Nếu không có ?edit=ID thì chắc chắn là thêm truyện mới */
+if(!isEditMode){
+    localStorage.removeItem("editMangaId");
+    localStorage.removeItem("editingMangaId");
+}
+
+/* Nếu đang sửa thì lưu lại ID cho các trang khác dùng nếu cần */
+if(isEditMode){
+    localStorage.setItem("editMangaId", editMangaId);
+}
+
+/* ================== HÀM PHỤ ================== */
 
 function getSupabase(){
     return window.supabaseClient || window.supabase || null;
@@ -25,6 +43,7 @@ function getInputValue(id){
 
 function setInputValue(id, value){
     var input = document.getElementById(id);
+
     if(input){
         input.value = value || "";
     }
@@ -61,6 +80,8 @@ if(statusInput){
     statusInput.onchange = updateStatusColor;
 }
 
+/* ================== PREVIEW ẢNH BÌA ================== */
+
 if(coverInput){
     coverInput.onchange = function(){
         var file = coverInput.files[0];
@@ -74,7 +95,7 @@ if(coverInput){
             }
 
             if(coverText){
-                coverText.style.display = oldCoverUrl ? "block" : "block";
+                coverText.style.display = "block";
                 coverText.innerText = oldCoverUrl ? "Ảnh bìa hiện tại" : "Chưa chọn ảnh";
             }
 
@@ -93,6 +114,8 @@ if(coverInput){
         }
     };
 }
+
+/* ================== UPLOAD R2 ================== */
 
 async function uploadFileToR2(file, options){
     var formData = new FormData();
@@ -127,6 +150,8 @@ async function uploadFileToR2(file, options){
     return data.url;
 }
 
+/* ================== BUTTON LOADING ================== */
+
 function setButtonsLoading(isLoading){
     var submitBtn = document.querySelector('button[type="submit"]');
 
@@ -141,17 +166,27 @@ function setButtonsLoading(isLoading){
     }
 }
 
+/* ================== RESET FORM THÊM TRUYỆN ================== */
+
 function resetForm(){
     if(mangaForm){
         mangaForm.reset();
     }
 
+    setInputValue("title", "");
+    setInputValue("originalName", "");
+    setInputValue("author", "");
     setInputValue("year", "2026");
     setInputValue("team", "Lion Team");
     setInputValue("chapter", "");
+    setInputValue("description", "");
 
     selectedCoverFile = null;
     oldCoverUrl = "";
+
+    if(coverInput){
+        coverInput.value = "";
+    }
 
     if(coverPreview){
         coverPreview.src = "";
@@ -163,8 +198,20 @@ function resetForm(){
         coverText.innerText = "Chưa chọn ảnh";
     }
 
+    var statusInput = document.getElementById("status");
+
+    if(statusInput){
+        statusInput.value = "Đang tiến hành";
+    }
+
+    document.querySelectorAll('input[name="genre"]').forEach(function(input){
+        input.checked = false;
+    });
+
     updateStatusColor();
 }
+
+/* ================== THỂ LOẠI ================== */
 
 function getGenres(){
     var genres = [];
@@ -196,11 +243,19 @@ function setGenres(genres){
     });
 }
 
+/* ================== LOAD DỮ LIỆU KHI SỬA ================== */
+
 async function loadOldMangaData(){
     var db = getSupabase();
 
     if(!db){
         alert("Lỗi: Chưa load supabase.js trước ThemTr.js");
+        return;
+    }
+
+    if(!editMangaId){
+        alert("Không tìm thấy ID truyện cần sửa!");
+        window.location.href = "Danhsach.html";
         return;
     }
 
@@ -227,6 +282,7 @@ async function loadOldMangaData(){
     setInputValue("description", manga.description);
 
     var statusInput = document.getElementById("status");
+
     if(statusInput){
         statusInput.value = manga.status || "Đang tiến hành";
     }
@@ -246,6 +302,8 @@ async function loadOldMangaData(){
         coverText.innerText = oldCoverUrl ? "Ảnh bìa hiện tại" : "Chưa chọn ảnh";
     }
 }
+
+/* ================== LƯU TRUYỆN ================== */
 
 async function saveManga(exitAfterSave){
     var db = getSupabase();
@@ -328,15 +386,26 @@ async function saveManga(exitAfterSave){
 
     if(exitAfterSave){
         localStorage.setItem("currentMangaId", result.data.id);
-        window.location.href = isEditMode ? "Quanlytruyenchitiet.html" : "Danhsach.html";
-    }else{
+
         if(isEditMode){
-            await loadOldMangaData();
+            window.location.href = "Quanlytruyenchitiet.html";
         }else{
-            resetForm();
+            localStorage.removeItem("editMangaId");
+            localStorage.removeItem("editingMangaId");
+            window.location.href = "Danhsach.html";
         }
+
+        return;
+    }
+
+    if(isEditMode){
+        await loadOldMangaData();
+    }else{
+        resetForm();
     }
 }
+
+/* ================== EVENT ================== */
 
 if(mangaForm){
     mangaForm.onsubmit = function(e){
@@ -350,6 +419,8 @@ if(saveExitBtn){
         saveManga(true);
     };
 }
+
+/* ================== KHỞI ĐỘNG TRANG ================== */
 
 if(isEditMode){
     loadOldMangaData();
