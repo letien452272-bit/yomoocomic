@@ -680,6 +680,27 @@ body{
 #reportType option{
     font-size:12px !important;
 }
+.chapter-top-banner,
+.chapter-bottom-banner{
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+    background:#101825;
+}
+
+.chapter-top-banner img,
+.chapter-bottom-banner img{
+    width:100%;
+    display:block;
+}
+
+.chapter-top-banner{
+    margin-top:20px;
+}
+
+.chapter-bottom-banner{
+    margin-bottom:30px;
+}
 @media screen and (max-width:768px){
 
     .chapter-nav{
