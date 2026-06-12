@@ -1,9 +1,13 @@
-<script>
 window.addEventListener("load", function(){
+
+    var popup = document.getElementById("adblockPopup");
+    var closeBtn = document.getElementById("closeAdblock");
+    var okBtn = document.getElementById("okAdblock");
 
     var bait = document.createElement("div");
 
-    bait.className = "adsbox ad-banner ads";
+    bait.className =
+    "ads adsbox ad-banner ad-placement adsbygoogle";
 
     bait.style.height = "1px";
 
@@ -13,23 +17,26 @@ window.addEventListener("load", function(){
 
         var blocked =
             bait.offsetHeight === 0 ||
-            getComputedStyle(bait).display === "none";
+            window.getComputedStyle(bait).display === "none";
 
         bait.remove();
 
         if(blocked){
-            document.getElementById("adblockPopup").style.display = "flex";
+            popup.style.display = "flex";
         }
 
-    },300);
+    },500);
 
-    document.getElementById("closeAdblock").onclick = function(){
-        document.getElementById("adblockPopup").style.display = "none";
-    };
+    if(closeBtn){
+        closeBtn.onclick = function(){
+            popup.style.display = "none";
+        };
+    }
 
-    document.getElementById("okAdblock").onclick = function(){
-        document.getElementById("adblockPopup").style.display = "none";
-    };
+    if(okBtn){
+        okBtn.onclick = function(){
+            popup.style.display = "none";
+        };
+    }
 
 });
-</script>
