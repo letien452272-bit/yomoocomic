@@ -1666,3 +1666,83 @@ body{
         margin:0 !important;
     }
 }
+.adblock-overlay{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,0.8);
+
+    z-index:999999;
+
+    display:none;
+
+    justify-content:center;
+    align-items:center;
+}
+
+.adblock-popup{
+    width:90%;
+    max-width:420px;
+
+    background:#1e2736;
+
+    border-radius:20px;
+
+    padding:25px;
+
+    text-align:center;
+
+    color:white;
+
+    position:relative;
+
+    border:2px solid #7ed957;
+}
+
+.adblock-popup img{
+    width:130px;
+    margin-bottom:15px;
+}
+
+.adblock-popup h2{
+    color:#ffd93d;
+    margin-bottom:10px;
+}
+
+.adblock-popup p{
+    line-height:1.6;
+}
+
+.adblock-popup button{
+    margin-top:15px;
+
+    padding:12px 25px;
+
+    border:none;
+
+    border-radius:25px;
+
+    background:#2ecc71;
+
+    color:white;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+#closeAdblock{
+    position:absolute;
+
+    top:10px;
+    right:10px;
+
+    width:35px;
+    height:35px;
+
+    border-radius:50%;
+
+    background:#444;
+
+    margin:0;
+}
