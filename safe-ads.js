@@ -26,6 +26,7 @@ function loadSafeAd(boxId){
 
     iframe.setAttribute("sandbox", "allow-scripts");
     iframe.setAttribute("loading", "lazy");
+    iframe.setAttribute("scrolling", "no");
     iframe.setAttribute("title", "Advertisement");
 
     iframe.style.border = "0";
