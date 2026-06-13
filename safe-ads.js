@@ -17,14 +17,18 @@ function loadSafeAd(boxId){
     var width = isMobile ? 320 : 728;
     var height = isMobile ? 50 : 90;
 
+    box.style.display = "flex";
+    box.style.height = height + "px";
+
     var iframe = document.createElement("iframe");
 
     iframe.className = "safe-ad-frame";
     iframe.width = width;
     iframe.height = height;
-    iframe.src = "ad-frame.html?key=" + key + "&width=" + width + "&height=" + height;
 
-    iframe.setAttribute("sandbox", "allow-scripts");
+    iframe.src = "ad-frame.html?key=" + key + "&width=" + width + "&height=" + height + "&v=" + Date.now();
+
+    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
     iframe.setAttribute("loading", "lazy");
     iframe.setAttribute("scrolling", "no");
     iframe.setAttribute("title", "Advertisement");
@@ -32,6 +36,8 @@ function loadSafeAd(boxId){
     iframe.style.border = "0";
     iframe.style.overflow = "hidden";
     iframe.style.display = "block";
+    iframe.style.width = width + "px";
+    iframe.style.height = height + "px";
 
     box.appendChild(iframe);
 }
