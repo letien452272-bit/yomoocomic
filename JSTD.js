@@ -8,6 +8,10 @@ if(descText && descBtn){
     };
 }
 
+function getSupabase(){
+    return window.supabaseClient || window.supabase || supabase || null;
+}
+
 var params = new URLSearchParams(window.location.search);
 var mangaId = Number(params.get("id")) || Number(localStorage.getItem("currentMangaId"));
 
@@ -47,8 +51,14 @@ function getCommentDisplayName(user){
 }
 
 async function loadMangaDetail(){
+    var db = getSupabase();
 
-    var mangaResult = await supabase
+    if(!db){
+        alert("Lỗi: Chưa kết nối Supabase!");
+        return;
+    }
+
+    var mangaResult = await db
         .from("mangas")
         .select("*")
         .eq("id", mangaId)
@@ -63,7 +73,7 @@ async function loadMangaDetail(){
 
     manga = mangaResult.data;
 
-    var chapterResult = await supabase
+    var chapterResult = await db
         .from("chapters")
         .select("*")
         .eq("manga_id", mangaId)
@@ -77,7 +87,7 @@ async function loadMangaDetail(){
         manga.chapters = chapterResult.data || [];
     }
 
-    var suggestResult = await supabase
+    var suggestResult = await db
         .from("mangas")
         .select("*")
         .neq("id", mangaId)
@@ -140,7 +150,6 @@ function getChapterNumber(targetManga){
 }
 
 function renderMangaDetail(){
-
     document.getElementById("anhBia").src = manga.cover || "Image/LOGO WEB.png";
     document.getElementById("tenTruyen").textContent = manga.title || "Không tên";
     document.getElementById("tenGoc").textContent = manga.original_name || manga.originalName || "Đang cập nhật";
@@ -259,11 +268,23 @@ function setupContinueButton(){
     }
 }
 
+/* ================= THEO DÕI SUPABASE ================= */
+
 var followBtn = document.getElementById("followBtn");
 
 async function getLoginUserForFollow(){
     if(typeof getCurrentUser === "function"){
         return await getCurrentUser();
+    }
+
+    var db = getSupabase();
+
+    if(db && db.auth){
+        var result = await db.auth.getUser();
+
+        if(result && result.data && result.data.user){
+            return result.data.user;
+        }
     }
 
     return null;
@@ -273,6 +294,7 @@ async function isCurrentMangaFollowed(){
     var db = getSupabase();
 
     if(!db){
+        console.log("Không tìm thấy Supabase trong kiểm tra theo dõi.");
         return false;
     }
 
@@ -385,27 +407,8 @@ async function setupFollowButton(){
         await updateFollowButton();
     };
 }
-    if(!followBtn) return;
 
-    followBtn.onclick = function(){
-        var followList = getFollowList();
-
-        var index = followList.findIndex(function(item){
-            return Number(item.id) === Number(manga.id);
-        });
-
-        if(index === -1){
-            followList.push(getCurrentFollowItem());
-        }else{
-            followList.splice(index, 1);
-        }
-
-        saveFollowList(followList);
-        updateFollowButton();
-    };
-
-    updateFollowButton();
-}
+/* ================= ĐÁNH GIÁ ================= */
 
 function setupRating(){
     var ratingStars = document.querySelectorAll("#ratingStars span");
@@ -458,6 +461,8 @@ function setupRating(){
         renderRating();
     }
 }
+
+/* ================= BÌNH LUẬN ================= */
 
 function setupCommentButton(){
     var sendComment = document.getElementById("sendComment");
@@ -575,7 +580,6 @@ function renderComments(){
     }
 
     commentList.innerHTML = pageItems.map(function(item){
-
         var name = item.userName || "Khách";
         var email = String(item.userEmail || "").toLowerCase();
         var role = item.role || "user";
