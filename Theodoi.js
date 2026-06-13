@@ -5,16 +5,25 @@ var currentPage = 1;
 var perPage = 20;
 
 var followedMangas = [];
+var currentUser = null;
 
 function getSupabase(){
     return window.supabaseClient || window.supabase || null;
 }
 
-function getFollowList(){
+async function getLoginUser(){
+    if(typeof getCurrentUser === "function"){
+        return await getCurrentUser();
+    }
+
+    return null;
+}
+
+function getLocalFollowList(){
     return JSON.parse(localStorage.getItem("followList")) || [];
 }
 
-function saveFollowList(list){
+function saveLocalFollowList(list){
     localStorage.setItem("followList", JSON.stringify(list));
 }
 
@@ -33,7 +42,51 @@ function getChapterNumber(manga){
         return max;
     }
 
-    return Number(manga.latestChapter || manga.chapter || 0);
+    return Number(manga.latestChapter || manga.chapter || manga.latest_chapter || 0);
+}
+
+async function syncLocalFollowToSupabase(){
+    var db = getSupabase();
+
+    if(!db || !currentUser){
+        return;
+    }
+
+    var localList = getLocalFollowList();
+
+    if(localList.length === 0){
+        return;
+    }
+
+    var rows = [];
+
+    localList.forEach(function(item){
+        var mangaId = Number(item.id || item.manga_id || item.mangaId);
+
+        if(!mangaId || isNaN(mangaId)){
+            return;
+        }
+
+        rows.push({
+            user_id: currentUser.id,
+            manga_id: mangaId,
+            seen_chapter: Number(item.seenChapter || item.latestChapter || 0)
+        });
+    });
+
+    if(rows.length === 0){
+        return;
+    }
+
+    var result = await db
+        .from("follows")
+        .upsert(rows, {
+            onConflict: "user_id,manga_id"
+        });
+
+    if(result.error){
+        console.log("Lỗi đồng bộ follow local lên Supabase:", result.error);
+    }
 }
 
 async function loadFollowList(){
@@ -52,13 +105,39 @@ async function loadFollowList(){
     if(!db){
         followListBox.innerHTML = `
             <div class="empty-follow">
-                Lỗi: Chưa load supabase.js trước TheoDoi.js.
+                Lỗi: Chưa load supabase.js trước Theodoi.js.
             </div>
         `;
         return;
     }
 
-    var followList = getFollowList();
+    currentUser = await getLoginUser();
+
+    if(!currentUser){
+        alert("Bạn cần đăng nhập để xem danh sách theo dõi.");
+        window.location.href = "Loging.html";
+        return;
+    }
+
+    await syncLocalFollowToSupabase();
+
+    var followResult = await db
+        .from("follows")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending:false });
+
+    if(followResult.error){
+        console.log("Lỗi follows:", followResult.error);
+        followListBox.innerHTML = `
+            <div class="empty-follow">
+                Lỗi tải danh sách theo dõi.
+            </div>
+        `;
+        return;
+    }
+
+    var followList = followResult.data || [];
 
     if(followList.length === 0){
         followedMangas = [];
@@ -67,7 +146,7 @@ async function loadFollowList(){
     }
 
     var mangaIds = followList.map(function(item){
-        return Number(item.id || item.manga_id || item.mangaId);
+        return Number(item.manga_id);
     }).filter(function(id){
         return !isNaN(id);
     });
@@ -106,7 +185,7 @@ async function loadFollowList(){
     var chapters = chapterResult.data || [];
 
     followedMangas = followList.map(function(followItem){
-        var mangaId = Number(followItem.id || followItem.manga_id || followItem.mangaId);
+        var mangaId = Number(followItem.manga_id);
 
         var manga = mangas.find(function(item){
             return Number(item.id) === mangaId;
@@ -123,7 +202,7 @@ async function loadFollowList(){
         manga.chapters = mangaChapters;
 
         var currentChapter = getChapterNumber(manga);
-        var seenChapter = Number(followItem.seenChapter || followItem.latestChapter || 0);
+        var seenChapter = Number(followItem.seen_chapter || 0);
         var newChapterCount = currentChapter - seenChapter;
 
         if(newChapterCount < 0){
@@ -132,13 +211,14 @@ async function loadFollowList(){
 
         return {
             id: manga.id,
-            title: manga.title || followItem.title || "Không có tên",
-            image: manga.cover || followItem.image || "Image/LOGO WEB.png",
+            title: manga.title || "Không có tên",
+            image: manga.cover || "Image/LOGO WEB.png",
             status: manga.status || "Đang tiến hành",
             currentChapter: currentChapter,
             seenChapter: seenChapter,
             newChapterCount: newChapterCount,
-            updatedAt: manga.updated_at || manga.created_at || ""
+            updatedAt: manga.updated_at || manga.created_at || "",
+            createdAt: followItem.created_at || ""
         };
     }).filter(function(item){
         return item !== null;
@@ -193,14 +273,14 @@ function renderFollowList(){
 
         item.innerHTML = `
             <div class="follow-cover-box">
-				${hasNew ? '<img class="new-chapter-icon" src="Image/massage.svg" alt="Mới">' : ''}
-
-				<img class="follow-cover" src="${truyen.image || 'Image/LOGO WEB.png'}" alt="Ảnh truyện">
-			</div>
+                ${hasNew ? '<img class="new-chapter-icon" src="Image/massage.svg" alt="Mới">' : ''}
+                <img class="follow-cover" src="${truyen.image || 'Image/LOGO WEB.png'}" alt="Ảnh truyện">
+            </div>
 
             <div class="follow-info">
                 <h3>${truyen.title || "Không có tên"}</h3>
                 <p>${chapterText}</p>
+                ${hasNew ? `<span class="new-chapter-text">Có ${hasNew ? truyen.newChapterCount : 0} chương mới</span>` : ""}
             </div>
 
             <div class="follow-actions">
@@ -252,43 +332,86 @@ function renderPagination(total){
     }
 }
 
-function markAsRead(id){
-    var list = getFollowList();
+async function markAsRead(id){
+    var db = getSupabase();
+
+    if(!db || !currentUser){
+        return;
+    }
 
     var manga = followedMangas.find(function(item){
         return Number(item.id) === Number(id);
     });
 
-    list.forEach(function(item){
+    if(!manga){
+        return;
+    }
+
+    var result = await db
+        .from("follows")
+        .update({
+            seen_chapter: Number(manga.currentChapter || 0)
+        })
+        .eq("user_id", currentUser.id)
+        .eq("manga_id", Number(id));
+
+    if(result.error){
+        console.log("Lỗi cập nhật đã đọc:", result.error);
+    }
+
+    var localList = getLocalFollowList();
+
+    localList.forEach(function(item){
         var itemId = Number(item.id || item.manga_id || item.mangaId);
 
-        if(itemId === Number(id) && manga){
-            item.id = Number(id);
+        if(itemId === Number(id)){
             item.seenChapter = Number(manga.currentChapter || 0);
             item.latestChapter = Number(manga.currentChapter || 0);
             item.newChapterCount = 0;
         }
     });
 
-    saveFollowList(list);
+    saveLocalFollowList(localList);
 }
 
-function goToStory(id){
-    markAsRead(id);
+async function goToStory(id){
+    await markAsRead(id);
 
     localStorage.setItem("currentMangaId", id);
     window.location.href = "TD.html?id=" + id;
 }
 
-function removeFollowById(id){
-    var list = getFollowList();
+async function removeFollowById(id){
+    var db = getSupabase();
 
-    list = list.filter(function(item){
+    if(!db || !currentUser){
+        return;
+    }
+
+    if(!confirm("Bạn có chắc muốn xóa truyện này khỏi danh sách theo dõi không?")){
+        return;
+    }
+
+    var result = await db
+        .from("follows")
+        .delete()
+        .eq("user_id", currentUser.id)
+        .eq("manga_id", Number(id));
+
+    if(result.error){
+        alert("Lỗi xóa theo dõi: " + result.error.message);
+        console.log(result.error);
+        return;
+    }
+
+    var localList = getLocalFollowList();
+
+    localList = localList.filter(function(item){
         var itemId = Number(item.id || item.manga_id || item.mangaId);
         return itemId !== Number(id);
     });
 
-    saveFollowList(list);
+    saveLocalFollowList(localList);
 
     followedMangas = followedMangas.filter(function(item){
         return Number(item.id) !== Number(id);
@@ -297,12 +420,32 @@ function removeFollowById(id){
     renderFollowList();
 }
 
-function clearFollowList(){
-    if(confirm("Bạn có chắc muốn xóa tất cả truyện theo dõi không?")){
-        localStorage.removeItem("followList");
-        followedMangas = [];
-        renderFollowList();
+async function clearFollowList(){
+    var db = getSupabase();
+
+    if(!db || !currentUser){
+        return;
     }
+
+    if(!confirm("Bạn có chắc muốn xóa tất cả truyện theo dõi không?")){
+        return;
+    }
+
+    var result = await db
+        .from("follows")
+        .delete()
+        .eq("user_id", currentUser.id);
+
+    if(result.error){
+        alert("Lỗi xóa tất cả theo dõi: " + result.error.message);
+        console.log(result.error);
+        return;
+    }
+
+    localStorage.removeItem("followList");
+
+    followedMangas = [];
+    renderFollowList();
 }
 
 loadFollowList();
