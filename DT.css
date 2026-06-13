@@ -760,3 +760,11 @@ body{
     margin:20px auto;
     color:#fff;
 }
+body > .chapter-top-banner,
+body > .chapter-bottom-banner,
+.chapter-nav + .chapter-top-banner,
+.chapter-nav + .chapter-bottom-banner,
+.dtr-ad .chapter-top-banner,
+.dtr-ad .chapter-bottom-banner{
+    display:none !important;
+}
