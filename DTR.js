@@ -206,9 +206,12 @@ function createChapterImageWrap(src, alt, extraClass){
     return wrap;
 }
 
-function insertMiddleAd(parent){
+/* ===== QUẢNG CÁO GIỮA CHAPTER ===== */
+/* Mobile chỉ load 320x50, PC chỉ load 728x90 */
+function insertReaderAd(parent, adIndex){
     var adBox = document.createElement("div");
     adBox.className = "dtr-ad dtr-ad-middle";
+    adBox.id = "readerAd_" + adIndex;
 
     parent.appendChild(adBox);
 
@@ -278,6 +281,9 @@ function renderChapter(){
 
     chapterImages.appendChild(topBanner);
 
+    var adPoint1 = Math.floor(images.length / 3);
+    var adPoint2 = Math.floor(images.length * 2 / 3);
+
     images.forEach(function(img, index){
         var imageUrl = getImageUrl(img);
 
@@ -293,8 +299,19 @@ function renderChapter(){
 
         chapterImages.appendChild(wrap);
 
-        if(index === Math.floor(images.length / 2) - 1){
-            insertMiddleAd(chapterImages);
+        /* Nếu chapter ít ảnh quá thì chỉ chèn 1 quảng cáo để đỡ khó chịu */
+        if(images.length <= 4){
+            if(index === Math.floor(images.length / 2) - 1){
+                insertReaderAd(chapterImages, 1);
+            }
+        }else{
+            if(index === adPoint1){
+                insertReaderAd(chapterImages, 1);
+            }
+
+            if(index === adPoint2){
+                insertReaderAd(chapterImages, 2);
+            }
         }
     });
 
