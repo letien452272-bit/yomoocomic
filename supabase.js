@@ -5,17 +5,23 @@ const SUPABASE_KEY = "sb_publishable_IOlxiWS-4pfUqR3Sbh0qyg_oZhe8FBT";
 
 /* ================= INIT SUPABASE ================= */
 
-var supabase = null;
-
-if(!window.supabase){
+if(!window.supabase || !window.supabase.createClient){
     console.error("Lỗi: Chưa load thư viện Supabase CDN trước supabase.js");
 }else{
-    window.supabaseClient = window.supabase.createClient(
+    var supabaseLibrary = window.supabase;
+
+    window.supabaseClient = supabaseLibrary.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
     );
 
-    supabase = window.supabaseClient;
+    /*
+        Dòng này để các file cũ đang dùng biến supabase vẫn chạy được:
+        await supabase.from(...)
+        await supabase.auth.getUser()
+    */
+    window.db = window.supabaseClient;
+    window.yomooSupabase = window.supabaseClient;
 
     console.log("Supabase đã kết nối thành công.");
 }
@@ -23,11 +29,11 @@ if(!window.supabase){
 /* ================= HELPER ================= */
 
 function getSupabase(){
-    return window.supabaseClient || supabase || null;
+    return window.supabaseClient || window.db || window.yomooSupabase || null;
 }
 
 function getSupabaseClient(){
-    return window.supabaseClient || supabase || null;
+    return window.supabaseClient || window.db || window.yomooSupabase || null;
 }
 
 async function waitForSupabase(){
@@ -87,16 +93,10 @@ async function getSupabaseSession(){
     return result.data.session;
 }
 
-/* ================= DEBUG TEST ================= */
+/* ================= BIẾN SUPABASE CHO CODE CŨ ================= */
 
-async function testSupabase(){
-    var db = await waitForSupabase();
-
-    if(!db){
-        console.log("Supabase chưa sẵn sàng.");
-        return false;
-    }
-
-    console.log("Supabase OK:", db);
-    return true;
-}
+/*
+    Không được khai báo var supabase = null ở đầu file.
+    Chỉ gán sau khi Supabase client đã tạo xong.
+*/
+var supabase = window.supabaseClient;
