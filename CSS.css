@@ -1483,13 +1483,13 @@ body{
 .safe-ad-frame{
     border:none !important;
     overflow:hidden !important;
-    display:block;
+    display:block !important;
 }
 
 @media(max-width:768px){
     .safe-ad-box{
-        height:50px;
-        margin:10px auto 15px;
+        height:50px !important;
+        margin:10px auto 15px !important;
     }
 
     .safe-ad-frame{
@@ -1499,6 +1499,10 @@ body{
 }
 
 @media(min-width:769px){
+    .safe-ad-box{
+        height:90px !important;
+    }
+
     .safe-ad-frame{
         width:728px !important;
         height:90px !important;
