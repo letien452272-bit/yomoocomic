@@ -608,34 +608,73 @@ body{
 
     #allComicList.category-grid{
         display:grid !important;
-        grid-template-columns:repeat(2, 120px) !important;
-        column-gap:14px !important;
-        row-gap:18px !important;
+        grid-template-columns:repeat(3, 1fr) !important;
+        gap:10px !important;
 
-        justify-content:start !important;
-        align-items:start !important;
+        width:100% !important;
+        margin:22px 0 0 0 !important;
+        padding:0 10px !important;
 
-        width:254px !important;
-        margin:22px auto 0 auto !important;
-        padding:0 !important;
         box-sizing:border-box !important;
+        justify-content:center !important;
+        align-items:start !important;
     }
 
     #allComicList.category-grid .comic{
-        width:120px !important;
-        height:245px !important;
+        width:100% !important;
+        height:215px !important;
         margin:0 !important;
         padding:0 !important;
+
+        background:#253247 !important;
+        border-radius:8px !important;
+        overflow:hidden !important;
     }
 
     #allComicList.category-grid .comic-cover{
-        width:120px !important;
-        height:170px !important;
+        width:100% !important;
+        height:145px !important;
+        overflow:hidden !important;
     }
 
     #allComicList.category-grid .comic-cover img{
-        width:120px !important;
-        height:170px !important;
+        width:100% !important;
+        height:145px !important;
         object-fit:cover !important;
+        display:block !important;
+    }
+
+    #allComicList.category-grid .comic-info{
+        height:70px !important;
+        padding:5px !important;
+        box-sizing:border-box !important;
+    }
+
+    #allComicList.category-grid .comic-info h3{
+        font-size:10px !important;
+        line-height:1.25 !important;
+        height:28px !important;
+        margin:0 0 5px !important;
+
+        overflow:hidden !important;
+        display:-webkit-box !important;
+        -webkit-line-clamp:2 !important;
+        -webkit-box-orient:vertical !important;
+
+        white-space:normal !important;
+        color:white !important;
+    }
+
+    #allComicList.category-grid .comic-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        font-size:9px !important;
+    }
+
+    #allComicList.category-grid .comic-view img{
+        width:8px !important;
+        height:8px !important;
+        object-fit:contain !important;
     }
 }
