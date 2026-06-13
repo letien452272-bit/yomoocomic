@@ -760,3 +760,17 @@ body{
     margin:20px auto;
     color:#fff;
 }
+.chapter-image-wrap{
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+}
+
+.chapter-image-wrap > img{
+    width:100%;
+    display:block;
+}
+
+.chapter-auto-banner{
+    margin:0 auto !important;
+}
