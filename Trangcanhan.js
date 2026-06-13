@@ -202,7 +202,7 @@ async function uploadAvatarToR2(file){
     var formData = new FormData();
 
     formData.append("file", file);
-    formData.append("type", "avatar");
+    formData.append("type", "cover");
     formData.append("userEmail", currentSupabaseUser.email);
 
     var response = await fetch(R2_UPLOAD_URL, {
