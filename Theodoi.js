@@ -1,4 +1,7 @@
-console.log("TheoDoi.js đã chạy bản mới 300");
+alert("Đã load đúng file TheoDoi.js bản mới 9999");
+console.log("TheoDoi.js đã chạy bản mới 9999");
+
+/* ================= KHAI BÁO ================= */
 
 var followListBox = document.getElementById("followList");
 var followPagination = document.getElementById("followPagination");
@@ -10,7 +13,7 @@ var perPage = 20;
 var followedMangas = [];
 var currentUser = null;
 
-/* ================= SUPABASE + USER ================= */
+/* ================= SUPABASE ================= */
 
 function getDb(){
     if(typeof getSupabase === "function"){
@@ -46,7 +49,7 @@ async function getLoginUser(){
 
 function showFollowMessage(text){
     if(!followListBox){
-        console.log("Không tìm thấy thẻ #followList");
+        console.log("Không tìm thấy #followList");
         return;
     }
 
@@ -83,7 +86,7 @@ async function loadFollowList(){
     console.log("Bắt đầu load danh sách theo dõi...");
 
     if(!followListBox){
-        console.log("Lỗi: Không tìm thấy #followList trong HTML.");
+        console.log("Lỗi: Không tìm thấy thẻ #followList trong HTML.");
         return;
     }
 
@@ -114,7 +117,6 @@ async function loadFollowList(){
 
     if(followResult.error){
         console.log("Lỗi tải follows:", followResult.error);
-
         showFollowMessage("Lỗi tải danh sách theo dõi: " + followResult.error.message);
         return;
     }
@@ -150,7 +152,6 @@ async function loadFollowList(){
 
     if(mangaResult.error){
         console.log("Lỗi tải mangas:", mangaResult.error);
-
         showFollowMessage("Lỗi tải truyện theo dõi: " + mangaResult.error.message);
         return;
     }
