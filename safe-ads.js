@@ -18,7 +18,12 @@ function loadSafeAd(boxId){
     var height = isMobile ? 50 : 90;
 
     box.style.display = "flex";
+    box.style.justifyContent = "center";
+    box.style.alignItems = "center";
+    box.style.width = "100%";
     box.style.height = height + "px";
+    box.style.margin = "15px auto 20px";
+    box.style.overflow = "hidden";
 
     var iframe = document.createElement("iframe");
 
@@ -38,6 +43,7 @@ function loadSafeAd(boxId){
     iframe.style.display = "block";
     iframe.style.width = width + "px";
     iframe.style.height = height + "px";
+    iframe.style.margin = "0 auto";
 
     box.appendChild(iframe);
 }
