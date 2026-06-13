@@ -26,9 +26,13 @@ async function requireLoginToRead(){
     }
 
     if(!currentUser){
-        currentUser = JSON.parse(localStorage.getItem("currentUser")) ||
-                      JSON.parse(localStorage.getItem("loginUser")) ||
-                      JSON.parse(localStorage.getItem("loggedInUser"));
+        try{
+            currentUser = JSON.parse(localStorage.getItem("currentUser")) ||
+                          JSON.parse(localStorage.getItem("loginUser")) ||
+                          JSON.parse(localStorage.getItem("loggedInUser"));
+        }catch(e){
+            currentUser = null;
+        }
     }
 
     if(!currentUser){
@@ -206,44 +210,6 @@ function createChapterImageWrap(src, alt, extraClass){
     return wrap;
 }
 
-/* ===== QUẢNG CÁO GIỮA CHAPTER ===== */
-/* Mobile chỉ load 320x50, PC chỉ load 728x90 */
-function insertReaderAd(parent, adIndex){
-    var adBox = document.createElement("div");
-    adBox.className = "dtr-ad dtr-ad-middle";
-    adBox.id = "readerAd_" + adIndex;
-
-    parent.appendChild(adBox);
-
-    var isMobile = window.innerWidth <= 768;
-
-    if(isMobile){
-        window.atOptions = {
-            'key' : '68c5dd71d67d6721b98864fec634a4d9',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-        };
-
-        var mobileScript = document.createElement("script");
-        mobileScript.src = "https://www.highperformanceformat.com/68c5dd71d67d6721b98864fec634a4d9/invoke.js";
-        adBox.appendChild(mobileScript);
-    }else{
-        window.atOptions = {
-            'key' : 'a5e37a3101f1a538797518fb69cd108b',
-            'format' : 'iframe',
-            'height' : 90,
-            'width' : 728,
-            'params' : {}
-        };
-
-        var pcScript = document.createElement("script");
-        pcScript.src = "https://www.highperformanceformat.com/a5e37a3101f1a538797518fb69cd108b/invoke.js";
-        adBox.appendChild(pcScript);
-    }
-}
-
 function renderChapter(){
     var chapterTitle = document.getElementById("chapterTitle");
     var chapterImages = document.getElementById("chapterImages");
@@ -252,7 +218,9 @@ function renderChapter(){
         chapterTitle.textContent = (manga.title || "Không tên") + " - Chapter " + (chapter.number || "");
     }
 
-    if(!chapterImages) return;
+    if(!chapterImages){
+        return;
+    }
 
     chapterImages.innerHTML = "";
 
@@ -281,10 +249,7 @@ function renderChapter(){
 
     chapterImages.appendChild(topBanner);
 
-    var adPoint1 = Math.floor(images.length / 3);
-    var adPoint2 = Math.floor(images.length * 2 / 3);
-
-    images.forEach(function(img, index){
+    images.forEach(function(img){
         var imageUrl = getImageUrl(img);
 
         if(!imageUrl){
@@ -298,21 +263,6 @@ function renderChapter(){
         );
 
         chapterImages.appendChild(wrap);
-
-        /* Nếu chapter ít ảnh quá thì chỉ chèn 1 quảng cáo để đỡ khó chịu */
-        if(images.length <= 4){
-            if(index === Math.floor(images.length / 2) - 1){
-                insertReaderAd(chapterImages, 1);
-            }
-        }else{
-            if(index === adPoint1){
-                insertReaderAd(chapterImages, 1);
-            }
-
-            if(index === adPoint2){
-                insertReaderAd(chapterImages, 2);
-            }
-        }
     });
 
     var bottomBanner = createChapterImageWrap(
@@ -398,7 +348,9 @@ function setupChapterButtons(){
     }
 
     function disableBtn(btn){
-        if(!btn) return;
+        if(!btn){
+            return;
+        }
 
         btn.style.opacity = "0.5";
         btn.style.cursor = "not-allowed";
@@ -580,9 +532,13 @@ async function getCurrentCommentUser(){
     }
 
     if(!user){
-        user = JSON.parse(localStorage.getItem("currentUser")) ||
-               JSON.parse(localStorage.getItem("loginUser")) ||
-               JSON.parse(localStorage.getItem("loggedInUser"));
+        try{
+            user = JSON.parse(localStorage.getItem("currentUser")) ||
+                   JSON.parse(localStorage.getItem("loginUser")) ||
+                   JSON.parse(localStorage.getItem("loggedInUser"));
+        }catch(e){
+            user = null;
+        }
     }
 
     if(!user){
@@ -609,7 +565,9 @@ async function getCurrentCommentUser(){
 async function sendCommentNow(){
     var commentInput = document.getElementById("commentInput");
 
-    if(!commentInput) return;
+    if(!commentInput){
+        return;
+    }
 
     var text = commentInput.value.trim();
 
@@ -650,7 +608,9 @@ async function sendCommentNow(){
 function renderComments(){
     var commentList = document.getElementById("commentList");
 
-    if(!commentList) return;
+    if(!commentList){
+        return;
+    }
 
     var comments = JSON.parse(localStorage.getItem("mangaComments")) || {};
     var key = "manga_" + mangaId;
