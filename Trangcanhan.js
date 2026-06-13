@@ -1,19 +1,219 @@
 var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
 var R2_PUBLIC_URL = "https://pub-feac672c19c646b4b97ff6a2ac5ce733.r2.dev";
 
+var currentSupabaseUser = null;
+
+/* ================== SUPABASE ================== */
+
+function getSupabaseClient(){
+    return window.supabaseClient || window.supabase || null;
+}
+
+async function getCurrentSupabaseUser(){
+    var db = getSupabaseClient();
+
+    if(!db || !db.auth){
+        return null;
+    }
+
+    var result = await db.auth.getUser();
+
+    if(result.error || !result.data || !result.data.user){
+        return null;
+    }
+
+    return result.data.user;
+}
+
+function getUserName(user){
+    if(!user){
+        return "Khách";
+    }
+
+    return (
+        user.user_metadata?.username ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Người dùng"
+    );
+}
+
+function getUserAvatar(user){
+    if(!user){
+        return "Image/user.svg";
+    }
+
+    return user.user_metadata?.avatar || "Image/user.svg";
+}
+
+function getUserRole(user){
+    if(!user){
+        return "user";
+    }
+
+    if(user.email === "letien.452272@gmail.com"){
+        return "admin";
+    }
+
+    return user.user_metadata?.role || "user";
+}
+
+async function updateSupabaseUserMetadata(newData){
+    var db = getSupabaseClient();
+
+    if(!db || !db.auth){
+        throw new Error("Chưa load Supabase.");
+    }
+
+    var oldMetadata = currentSupabaseUser?.user_metadata || {};
+
+    var result = await db.auth.updateUser({
+        data: Object.assign({}, oldMetadata, newData)
+    });
+
+    if(result.error){
+        throw new Error(result.error.message);
+    }
+
+    currentSupabaseUser = result.data.user;
+
+    return currentSupabaseUser;
+}
+
+/* ================== HIỂN THỊ HỒ SƠ ================== */
+
+function setTextOrValue(id, value){
+    var el = document.getElementById(id);
+
+    if(!el){
+        return;
+    }
+
+    if("value" in el){
+        el.value = value || "";
+    }else{
+        el.textContent = value || "";
+    }
+}
+
+function renderProfile(user){
+    var username = getUserName(user);
+    var email = user?.email || "";
+    var role = getUserRole(user);
+    var avatar = getUserAvatar(user);
+
+    var avatarImg = document.getElementById("profileAvatar");
+
+    if(avatarImg){
+        avatarImg.src = avatar;
+    }
+
+    /*
+        Hỗ trợ nhiều id khác nhau.
+        Nếu HTML của bạn dùng id nào trong mấy cái dưới thì nó tự fill.
+    */
+
+    setTextOrValue("username", username);
+    setTextOrValue("userName", username);
+    setTextOrValue("profileName", username);
+    setTextOrValue("profileUsername", username);
+    setTextOrValue("usernameInput", username);
+
+    setTextOrValue("email", email);
+    setTextOrValue("userEmail", email);
+    setTextOrValue("profileEmail", email);
+    setTextOrValue("emailInput", email);
+
+    setTextOrValue("role", role);
+    setTextOrValue("userRole", role);
+    setTextOrValue("profileRole", role);
+    setTextOrValue("roleInput", role);
+
+    /*
+        Update menu trên header nếu có.
+    */
+
+    var userBtn = document.getElementById("user-btn");
+
+    if(userBtn){
+        var avatarMenu = userBtn.querySelector("img");
+        var nameMenu = userBtn.querySelector("span");
+
+        if(avatarMenu){
+            avatarMenu.src = avatar;
+        }
+
+        if(nameMenu){
+            nameMenu.textContent = username;
+        }
+    }
+
+    var userHead = document.querySelector(".user-head");
+
+    if(userHead){
+        var h3 = userHead.querySelector("h3");
+        var p = userHead.querySelector("p");
+
+        if(h3){
+            h3.textContent = username;
+        }
+
+        if(p){
+            p.textContent = email;
+        }
+    }
+
+    var authText = document.getElementById("authText");
+    var authLink = document.getElementById("authLink");
+    var loginLink = document.getElementById("loginLink");
+    var adminLink = document.getElementById("adminLink");
+
+    if(authText){
+        authText.textContent = "Đăng xuất";
+    }
+
+    if(authLink){
+        authLink.href = "#";
+        authLink.onclick = function(e){
+            e.preventDefault();
+            logoutAccount();
+        };
+    }
+
+    if(loginLink){
+        loginLink.style.display = "none";
+    }
+
+    if(adminLink){
+        adminLink.style.display = role === "admin" ? "flex" : "none";
+    }
+}
+
+async function loadProfile(){
+    currentSupabaseUser = await getCurrentSupabaseUser();
+
+    if(!currentSupabaseUser){
+        alert("Bạn cần đăng nhập để dùng chức năng này.");
+        window.location.href = "Loging.html";
+        return;
+    }
+
+    renderProfile(currentSupabaseUser);
+}
+
+/* ================== AVATAR R2 ================== */
+
 function makeSafeAvatarName(fileName){
     var ext = fileName.split(".").pop().toLowerCase();
     return Date.now() + "-" + Math.random().toString(36).substring(2) + "." + ext;
 }
 
 async function uploadAvatarToR2(file){
-    var user = getCurrentUser();
-
-    if(!user){
+    if(!currentSupabaseUser){
         throw new Error("Bạn cần đăng nhập.");
     }
 
-    var safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, "-");
+    var safeEmail = currentSupabaseUser.email.replace(/[^a-zA-Z0-9]/g, "-");
     var fileName = makeSafeAvatarName(file.name);
 
     var r2Path = "avatars/" + safeEmail + "/" + fileName;
@@ -28,7 +228,8 @@ async function uploadAvatarToR2(file){
     });
 
     if(!response.ok){
-        throw new Error("Upload avatar lên R2 thất bại!");
+        var errorText = await response.text();
+        throw new Error(errorText || "Upload avatar lên R2 thất bại!");
     }
 
     return R2_PUBLIC_URL + "/" + r2Path;
@@ -49,11 +250,17 @@ async function changeAvatar(input){
     try{
         var avatarUrl = await uploadAvatarToR2(file);
 
-        updateUser({
+        await updateSupabaseUserMetadata({
             avatar: avatarUrl
         });
 
-        document.getElementById("profileAvatar").src = avatarUrl;
+        var avatarImg = document.getElementById("profileAvatar");
+
+        if(avatarImg){
+            avatarImg.src = avatarUrl;
+        }
+
+        renderProfile(currentSupabaseUser);
 
         alert("Đã đổi avatar thành công!");
 
@@ -63,7 +270,169 @@ async function changeAvatar(input){
     }
 }
 
-document.addEventListener("DOMContentLoaded", function(){
+async function resetAvatar(){
+    try{
+        await updateSupabaseUserMetadata({
+            avatar: "Image/user.svg"
+        });
+
+        var avatarImg = document.getElementById("profileAvatar");
+
+        if(avatarImg){
+            avatarImg.src = "Image/user.svg";
+        }
+
+        renderProfile(currentSupabaseUser);
+
+        alert("Đã đặt avatar về mặc định.");
+
+    }catch(error){
+        alert("Lỗi đặt lại avatar: " + error.message);
+        console.log(error);
+    }
+}
+
+/* ================== LƯU HỒ SƠ ================== */
+
+async function saveProfile(){
+    if(!currentSupabaseUser){
+        alert("Bạn cần đăng nhập.");
+        window.location.href = "Loging.html";
+        return;
+    }
+
+    var usernameInput =
+        document.getElementById("usernameInput") ||
+        document.getElementById("profileUsername") ||
+        document.getElementById("username") ||
+        document.getElementById("userName");
+
+    var username = usernameInput ? usernameInput.value.trim() : getUserName(currentSupabaseUser);
+
+    if(username === ""){
+        alert("Tên đăng nhập không được để trống.");
+        return;
+    }
+
+    try{
+        await updateSupabaseUserMetadata({
+            username: username,
+            name: username
+        });
+
+        renderProfile(currentSupabaseUser);
+
+        alert("Đã lưu hồ sơ.");
+
+    }catch(error){
+        alert("Lỗi lưu hồ sơ: " + error.message);
+        console.log(error);
+    }
+}
+
+/* ================== ĐỔI MẬT KHẨU SUPABASE ================== */
+
+async function changePassword(){
+    var db = getSupabaseClient();
+
+    if(!db || !db.auth){
+        alert("Chưa load Supabase.");
+        return;
+    }
+
+    if(!currentSupabaseUser){
+        alert("Bạn cần đăng nhập.");
+        window.location.href = "Loging.html";
+        return;
+    }
+
+    var oldPasswordInput = document.getElementById("oldPassword");
+    var newPasswordInput = document.getElementById("newPassword");
+    var confirmPasswordInput = document.getElementById("confirmPassword");
+
+    var oldPassword = oldPasswordInput ? oldPasswordInput.value.trim() : "";
+    var newPassword = newPasswordInput ? newPasswordInput.value.trim() : "";
+    var confirmPassword = confirmPasswordInput ? confirmPasswordInput.value.trim() : "";
+
+    if(oldPassword === "" || newPassword === "" || confirmPassword === ""){
+        alert("Vui lòng nhập đầy đủ mật khẩu.");
+        return;
+    }
+
+    if(newPassword.length < 6){
+        alert("Mật khẩu mới phải từ 6 ký tự.");
+        return;
+    }
+
+    if(newPassword !== confirmPassword){
+        alert("Mật khẩu nhập lại không khớp.");
+        return;
+    }
+
+    try{
+        /*
+            Supabase không cho đọc mật khẩu cũ.
+            Muốn kiểm tra mật khẩu cũ thì đăng nhập lại thử bằng email + mật khẩu cũ.
+        */
+
+        var checkLogin = await db.auth.signInWithPassword({
+            email: currentSupabaseUser.email,
+            password: oldPassword
+        });
+
+        if(checkLogin.error){
+            alert("Mật khẩu cũ không đúng.");
+            return;
+        }
+
+        var result = await db.auth.updateUser({
+            password: newPassword
+        });
+
+        if(result.error){
+            alert("Lỗi đổi mật khẩu: " + result.error.message);
+            return;
+        }
+
+        alert("Đổi mật khẩu thành công.");
+
+        if(oldPasswordInput) oldPasswordInput.value = "";
+        if(newPasswordInput) newPasswordInput.value = "";
+        if(confirmPasswordInput) confirmPasswordInput.value = "";
+
+        var passwordOverlay = document.getElementById("passwordOverlay");
+
+        if(passwordOverlay){
+            passwordOverlay.classList.remove("show");
+        }
+
+    }catch(error){
+        alert("Lỗi đổi mật khẩu: " + error.message);
+        console.log(error);
+    }
+}
+
+/* ================== ĐĂNG XUẤT ================== */
+
+async function logoutAccount(){
+    var db = getSupabaseClient();
+
+    if(db && db.auth){
+        await db.auth.signOut();
+    }
+
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("loginUser");
+    localStorage.removeItem("loggedInUser");
+
+    window.location.href = "Loging.html";
+}
+
+/* ================== MENU + EVENT ================== */
+
+document.addEventListener("DOMContentLoaded", async function(){
+
+    await loadProfile();
 
     /* MENU THỂ LOẠI */
     var genreBtn = document.getElementById("genre-btn");
@@ -116,17 +485,35 @@ document.addEventListener("DOMContentLoaded", function(){
         changeAvatarBtn.onclick = function(){
             avatarInput.click();
         };
+
+        avatarInput.onchange = function(){
+            changeAvatar(avatarInput);
+        };
     }
 
     if(resetAvatarBtn){
         resetAvatarBtn.onclick = function(){
-            updateUser({
-                avatar: "Image/user.svg"
-            });
+            resetAvatar();
+        };
+    }
 
-            document.getElementById("profileAvatar").src = "Image/user.svg";
+    /* LƯU HỒ SƠ */
+    var saveProfileBtn = document.getElementById("saveProfileBtn");
 
-            alert("Đã đặt avatar về mặc định.");
+    if(saveProfileBtn){
+        saveProfileBtn.onclick = function(e){
+            e.preventDefault();
+            saveProfile();
+        };
+    }
+
+    /* ĐĂNG XUẤT */
+    var logoutBtn = document.getElementById("logoutBtn");
+
+    if(logoutBtn){
+        logoutBtn.onclick = function(e){
+            e.preventDefault();
+            logoutAccount();
         };
     }
 
@@ -160,49 +547,7 @@ document.addEventListener("DOMContentLoaded", function(){
             e.preventDefault();
             e.stopPropagation();
 
-            var user = getCurrentUser();
-
-            if(!user){
-                alert("Bạn cần đăng nhập.");
-                window.location.href = "Loging.html";
-                return;
-            }
-
-            var oldPassword = document.getElementById("oldPassword").value.trim();
-            var newPassword = document.getElementById("newPassword").value.trim();
-            var confirmPassword = document.getElementById("confirmPassword").value.trim();
-
-            if(oldPassword === "" || newPassword === "" || confirmPassword === ""){
-                alert("Vui lòng nhập đầy đủ mật khẩu.");
-                return;
-            }
-
-            if(oldPassword !== user.password){
-                alert("Mật khẩu cũ không đúng.");
-                return;
-            }
-
-            if(newPassword.length < 6){
-                alert("Mật khẩu mới phải từ 6 ký tự.");
-                return;
-            }
-
-            if(newPassword !== confirmPassword){
-                alert("Mật khẩu nhập lại không khớp.");
-                return;
-            }
-
-            updateUser({
-                password: newPassword
-            });
-
-            alert("Đổi mật khẩu thành công.");
-
-            document.getElementById("oldPassword").value = "";
-            document.getElementById("newPassword").value = "";
-            document.getElementById("confirmPassword").value = "";
-
-            passwordOverlay.classList.remove("show");
+            changePassword();
         };
     }
 
