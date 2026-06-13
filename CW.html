@@ -174,50 +174,42 @@
         </table>
     </div>
 
-    <div class="ad-banner ad-728">
-        <script type="text/javascript">
-            atOptions = {
-                'key' : 'a5e37a3101f1a538797518fb69cd108b',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-            };
-        </script>
+    <div id="cwTopAd" class="safe-ad-box"></div>
+			<script type="text/javascript">
+				atOptions = {
+					'key' : 'a5e37a3101f1a538797518fb69cd108b',
+					'format' : 'iframe',
+					'height' : 90,
+					'width' : 728,
+					'params' : {}
+				};
+			</script>
+			<script>
+				atOptions = {
+					'key' : '68c5dd71d67d6721b98864fec634a4d9',
+					'format' : 'iframe',
+					'height' : 50,
+					'width' : 320,
+					'params' : {}
+				};
+			</script>
+			<script>
+			(function(){
 
-        <script type="text/javascript" src="https://www.highperformanceformat.com/a5e37a3101f1a538797518fb69cd108b/invoke.js"></script>
-		
-    </div>
+				var isMobile = window.innerWidth <= 768;
 
-    <div class="ad-mobile">
-        <script>
-            atOptions = {
-                'key' : '68c5dd71d67d6721b98864fec634a4d9',
-                'format' : 'iframe',
-                'height' : 50,
-                'width' : 320,
-                'params' : {}
-            };
-        </script>
+				if(isMobile){
+					document.querySelectorAll(".dtr-ad-pc, .td-ad-pc, .ad-728").forEach(function(ad){
+						ad.remove();
+					});
+				}else{
+					document.querySelectorAll(".dtr-ad-mobile, .td-ad-mobile, .ad-mobile, .ad-320").forEach(function(ad){
+						ad.remove();
+					});
+				}
 
-        <script src="https://www.highperformanceformat.com/68c5dd71d67d6721b98864fec634a4d9/invoke.js"></script>
-		<script>
-		(function(){
-
-			var isMobile = window.innerWidth <= 768;
-
-			if(isMobile){
-				document.querySelectorAll(".dtr-ad-pc, .td-ad-pc, .ad-728").forEach(function(ad){
-					ad.remove();
-				});
-			}else{
-				document.querySelectorAll(".dtr-ad-mobile, .td-ad-mobile, .ad-mobile, .ad-320").forEach(function(ad){
-					ad.remove();
-				});
-			}
-
-		})();
-		</script>
+			})();
+			</script>
     </div>
 
     <div class="main-content">
@@ -246,7 +238,7 @@
             </div>
 
         </div>
-		<div class="dtr-ad dtr-ad-mobile">
+		<div id="cwMiddleAd" class="safe-ad-box"></div>
 
 		<script>
 		  atOptions = {
@@ -258,7 +250,7 @@
 		  };
 		</script>
 
-		<script src="https://www.highperformanceformat.com/68c5dd71d67d6721b98864fec634a4d9/invoke.js"></script>
+
 		<script>
 		(function(){
 
@@ -282,8 +274,6 @@
             <div id="rankList"></div>
         </div>
 
-    </div>
-
     <div class="coming-section">
         <h2 class="coming-title">
             <img class="coming-icon" src="Image/time-forward.svg" alt="">
@@ -295,7 +285,7 @@
 
     <div class="history-section">
 
-        <div class="ad-banner ad-320">
+        <div id="cwHistoryAd" class="safe-ad-box">
             <script>
                 atOptions = {
                     'key' : '68c5dd71d67d6721b98864fec634a4d9',
@@ -306,7 +296,7 @@
                 };
             </script>
 
-            <script src="https://www.highperformanceformat.com/68c5dd71d67d6721b98864fec634a4d9/invoke.js"></script>
+
         </div>
 
         <h3>
@@ -323,7 +313,6 @@
         <p>Link: https://www.facebook.com/nhomslion</p>
     </div>
 
-</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
@@ -331,8 +320,11 @@
 <script src="menu.js"></script>
 <script src="search.js"></script>
 <script src="CWJS.js"></script>
-
-<script src="check.js"></script>
-
+<script src="safe-ads.js"></script>
+<script>
+loadSafeAd("cwTopAd");
+loadSafeAd("cwMiddleAd");
+loadSafeAd("cwHistoryAd");
+</script>
 </body>
 </html>
