@@ -127,18 +127,38 @@ function getImageUrl(img){
     return "";
 }
 
-function createChapterBanner(src, alt, className){
-    var banner = document.createElement("div");
-    banner.className = className;
+function isAutoYomooImage(url){
+    if(!url){
+        return false;
+    }
 
-    var img = document.createElement("img");
-    img.src = src;
-    img.alt = alt;
-    img.loading = "lazy";
+    return (
+        url.includes("Image/7.png") ||
+        url.includes("Image/8.png") ||
+        url.includes("./Image/7.png") ||
+        url.includes("./Image/8.png") ||
+        url.includes("/Image/7.png") ||
+        url.includes("/Image/8.png")
+    );
+}
 
-    banner.appendChild(img);
+function createChapterImageWrap(src, alt, extraClass){
+    var wrap = document.createElement("div");
 
-    return banner;
+    if(extraClass){
+        wrap.className = "chapter-image-wrap " + extraClass;
+    }else{
+        wrap.className = "chapter-image-wrap";
+    }
+
+    var image = document.createElement("img");
+    image.src = src;
+    image.alt = alt || "";
+    image.loading = "lazy";
+
+    wrap.appendChild(image);
+
+    return wrap;
 }
 
 function insertMiddleAd(parent){
@@ -190,15 +210,25 @@ function renderChapter(){
 
     var images = Array.isArray(chapter.images) ? chapter.images : [];
 
+    images = images.filter(function(img){
+        var url = getImageUrl(img);
+
+        if(!url){
+            return false;
+        }
+
+        return !isAutoYomooImage(url);
+    });
+
     if(images.length === 0){
         chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
         return;
     }
 
-    var topBanner = createChapterBanner(
+    var topBanner = createChapterImageWrap(
         "Image/7.png",
         "YOMOO đầu truyện",
-        "chapter-top-banner"
+        "chapter-auto-banner"
     );
 
     chapterImages.appendChild(topBanner);
@@ -210,15 +240,12 @@ function renderChapter(){
             return;
         }
 
-        var wrap = document.createElement("div");
-        wrap.className = "chapter-image-wrap";
+        var wrap = createChapterImageWrap(
+            imageUrl,
+            manga.title || "",
+            ""
+        );
 
-        var image = document.createElement("img");
-        image.src = imageUrl;
-        image.alt = manga.title || "";
-        image.loading = "lazy";
-
-        wrap.appendChild(image);
         chapterImages.appendChild(wrap);
 
         if(index === Math.floor(images.length / 2) - 1){
@@ -226,10 +253,10 @@ function renderChapter(){
         }
     });
 
-    var bottomBanner = createChapterBanner(
+    var bottomBanner = createChapterImageWrap(
         "Image/8.png",
         "YOMOO cuối truyện",
-        "chapter-bottom-banner"
+        "chapter-auto-banner"
     );
 
     chapterImages.appendChild(bottomBanner);
