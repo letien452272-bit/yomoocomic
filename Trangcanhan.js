@@ -108,11 +108,6 @@ function renderProfile(user){
         avatarImg.src = avatar;
     }
 
-    /*
-        Hỗ trợ nhiều id khác nhau.
-        Nếu HTML của bạn dùng id nào trong mấy cái dưới thì nó tự fill.
-    */
-
     setTextOrValue("username", username);
     setTextOrValue("userName", username);
     setTextOrValue("profileName", username);
@@ -128,10 +123,6 @@ function renderProfile(user){
     setTextOrValue("userRole", role);
     setTextOrValue("profileRole", role);
     setTextOrValue("roleInput", role);
-
-    /*
-        Update menu trên header nếu có.
-    */
 
     var userBtn = document.getElementById("user-btn");
 
@@ -203,28 +194,20 @@ async function loadProfile(){
 
 /* ================== AVATAR R2 ================== */
 
-function makeSafeAvatarName(fileName){
-    var ext = fileName.split(".").pop().toLowerCase();
-    return Date.now() + "-" + Math.random().toString(36).substring(2) + "." + ext;
-}
-
 async function uploadAvatarToR2(file){
     if(!currentSupabaseUser){
         throw new Error("Bạn cần đăng nhập.");
     }
 
-    var safeEmail = currentSupabaseUser.email.replace(/[^a-zA-Z0-9]/g, "-");
-    var fileName = makeSafeAvatarName(file.name);
+    var formData = new FormData();
 
-    var r2Path = "avatars/" + safeEmail + "/" + fileName;
-    var uploadUrl = R2_UPLOAD_URL + "/" + r2Path;
+    formData.append("file", file);
+    formData.append("type", "avatar");
+    formData.append("userEmail", currentSupabaseUser.email);
 
-    var response = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-            "Content-Type": file.type || "image/webp"
-        }
+    var response = await fetch(R2_UPLOAD_URL, {
+        method: "POST",
+        body: formData
     });
 
     if(!response.ok){
@@ -232,7 +215,13 @@ async function uploadAvatarToR2(file){
         throw new Error(errorText || "Upload avatar lên R2 thất bại!");
     }
 
-    return R2_PUBLIC_URL + "/" + r2Path;
+    var data = await response.json();
+
+    if(!data.url){
+        throw new Error("Worker không trả về URL ảnh.");
+    }
+
+    return data.url;
 }
 
 async function changeAvatar(input){
@@ -244,6 +233,7 @@ async function changeAvatar(input){
 
     if(!file.type.startsWith("image/")){
         alert("Vui lòng chọn file ảnh!");
+        input.value = "";
         return;
     }
 
@@ -262,9 +252,12 @@ async function changeAvatar(input){
 
         renderProfile(currentSupabaseUser);
 
+        input.value = "";
+
         alert("Đã đổi avatar thành công!");
 
     }catch(error){
+        input.value = "";
         alert("Lỗi đổi avatar: " + error.message);
         console.log(error);
     }
@@ -370,11 +363,6 @@ async function changePassword(){
     }
 
     try{
-        /*
-            Supabase không cho đọc mật khẩu cũ.
-            Muốn kiểm tra mật khẩu cũ thì đăng nhập lại thử bằng email + mật khẩu cũ.
-        */
-
         var checkLogin = await db.auth.signInWithPassword({
             email: currentSupabaseUser.email,
             password: oldPassword
