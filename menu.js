@@ -1,14 +1,13 @@
 document.addEventListener("DOMContentLoaded", async function(){
 
-    if(typeof updateUserMenu === "function"){
-    await updateUserMenu();
-}
-
-setTimeout(async function(){
+    /* CẬP NHẬT MENU USER */
     if(typeof updateUserMenu === "function"){
         await updateUserMenu();
     }
-}, 800);
+
+    setTimeout(forceUpdateMobileUserMenu, 300);
+    setTimeout(forceUpdateMobileUserMenu, 1000);
+    setTimeout(forceUpdateMobileUserMenu, 2500);
 
     /* ẨN HEADER TRÊN MOBILE */
     if(window.matchMedia("(max-width: 768px)").matches){
@@ -28,16 +27,51 @@ setTimeout(async function(){
         if(searchBox){
             searchBox.style.display = "none";
         }
-
-        var userName = document.querySelector("#user-btn span:first-of-type");
-
-        if(userName){
-            userName.style.display = "none";
-        }
-
     }
 
     /* MENU THỂ LOẠI */
+    setupGenreMenu();
+
+    /* MENU USER */
+    setupUserMenu();
+
+    document.addEventListener("click", function(){
+
+        var genreDropdown = document.getElementById("genre-dropdown");
+        var genreArrow = document.getElementById("genre-arrow");
+
+        if(genreDropdown){
+            genreDropdown.classList.remove("show");
+        }
+
+        if(genreArrow){
+            genreArrow.src = "Image/angle-small-down.svg";
+        }
+
+        var userDropdown = document.getElementById("user-dropdown");
+        var userArrow = document.getElementById("user-arrow");
+
+        if(userDropdown){
+            userDropdown.classList.remove("show");
+        }
+
+        if(userArrow){
+            userArrow.textContent = "v";
+        }
+    });
+
+    updateFollowNotifyDot();
+});
+
+window.addEventListener("load", function(){
+    setTimeout(forceUpdateMobileUserMenu, 500);
+    setTimeout(forceUpdateMobileUserMenu, 1500);
+    setTimeout(forceUpdateMobileUserMenu, 3000);
+});
+
+/* ================= MENU THỂ LOẠI ================= */
+
+function setupGenreMenu(){
     var genreBtn = document.getElementById("genre-btn");
     var genreDropdown = document.getElementById("genre-dropdown");
     var genreMenu = document.getElementById("genre-menu");
@@ -59,57 +93,78 @@ setTimeout(async function(){
             e.stopPropagation();
         };
     }
+}
 
-    /* MENU USER */
+/* ================= MENU USER ================= */
+
+function setupUserMenu(){
     var userBtn = document.getElementById("user-btn");
     var userDropdown = document.getElementById("user-dropdown");
     var userArrow = document.getElementById("user-arrow");
 
-    if(userBtn && userDropdown && userArrow){
+    if(userBtn && userDropdown){
         userBtn.onclick = function(e){
             e.preventDefault();
             e.stopPropagation();
 
             userDropdown.classList.toggle("show");
-            userArrow.textContent = userDropdown.classList.contains("show")
-                ? "^"
-                : "v";
+
+            var newArrow = document.getElementById("user-arrow");
+
+            if(newArrow){
+                newArrow.textContent = userDropdown.classList.contains("show")
+                    ? "^"
+                    : "v";
+            }
         };
 
         userDropdown.onclick = function(e){
             e.stopPropagation();
         };
     }
+}
 
-    document.addEventListener("click", function(){
+async function forceUpdateMobileUserMenu(){
+    if(typeof getCurrentUser !== "function"){
+        return;
+    }
 
-        if(genreDropdown){
-            genreDropdown.classList.remove("show");
-        }
+    var user = await getCurrentUser();
 
-        if(genreArrow){
-            genreArrow.src = "Image/angle-small-down.svg";
-        }
+    if(!user){
+        return;
+    }
 
-        if(userDropdown){
-            userDropdown.classList.remove("show");
-        }
+    var userBtn = document.getElementById("user-btn");
 
-        if(userArrow){
-            userArrow.textContent = "v";
-        }
+    if(!userBtn){
+        return;
+    }
 
-    });
+    var avatar = user.avatar || "Image/user.svg";
+    var name = user.username || user.name || user.email || "Người dùng";
 
-    updateFollowNotifyDot();
+    if(user.email && user.email.toLowerCase() === "letien.452272@gmail.com"){
+        name = "Admin";
+    }
 
-});
+    userBtn.innerHTML = `
+        <img src="${avatar}" alt="">
+        <span class="menu-user-name">${name}</span>
+        <span id="user-arrow">v</span>
+    `;
+
+    setupUserMenu();
+}
+
+/* ================= CHẤM BÁO THEO DÕI ================= */
 
 function updateFollowNotifyDot(){
-
     var followLink = document.querySelector('a[href="Theodoi.html"]');
 
-    if(!followLink) return;
+    if(!followLink){
+        return;
+    }
 
     var followList = JSON.parse(localStorage.getItem("followList")) || [];
     var mangas = JSON.parse(localStorage.getItem("mangas")) || [];
@@ -117,27 +172,24 @@ function updateFollowNotifyDot(){
     var hasNew = false;
 
     followList.forEach(function(item){
-
         var manga = mangas.find(function(m){
             return Number(m.id) === Number(item.id);
         });
 
-        if(!manga) return;
+        if(!manga){
+            return;
+        }
 
         var maxChap = 0;
 
         if(manga.chapters && manga.chapters.length > 0){
-
             manga.chapters.forEach(function(chapter){
-
                 var num = Number(chapter.number) || 0;
 
                 if(num > maxChap){
                     maxChap = num;
                 }
-
             });
-
         }
 
         var seen = Number(item.seenChapter || item.latestChapter || 0);
@@ -145,31 +197,21 @@ function updateFollowNotifyDot(){
         if(maxChap > seen){
             hasNew = true;
         }
-
     });
 
     var oldDot = followLink.querySelector(".follow-menu-dot");
 
     if(hasNew){
-
         followLink.classList.add("follow-menu-link");
 
         if(!oldDot){
-
             var dot = document.createElement("span");
             dot.className = "follow-menu-dot";
-
             followLink.appendChild(dot);
-
         }
-
-
     }else{
-
         if(oldDot){
             oldDot.remove();
         }
-
     }
-
 }
