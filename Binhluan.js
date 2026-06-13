@@ -9,7 +9,7 @@ var mangaComments = {};
 var allComments = [];
 var myComments = [];
 
-/* ================== CHECK ADMIN ================== */
+/* ================= USER ================= */
 
 function isAdminEmail(email){
     return String(email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -30,8 +30,6 @@ function getCommentDisplayName(user){
 
     return user.username || user.name || user.email || "Người dùng";
 }
-
-/* ================== USER SUPABASE ================== */
 
 async function getCurrentCommentPageUser(){
     var user = null;
@@ -61,7 +59,7 @@ async function getCurrentCommentPageUser(){
     };
 }
 
-/* ================== LOAD COMMENT ================== */
+/* ================= LOAD COMMENT ================= */
 
 function loadAllComments(){
     mangaComments = JSON.parse(localStorage.getItem("mangaComments")) || {};
@@ -80,30 +78,45 @@ function loadAllComments(){
 
 function isMyComment(cmt){
     var myEmail = String(currentUser.email || "").toLowerCase();
+    var myName = String(currentUser.username || currentUser.name || "").toLowerCase();
+
     var cmtEmail = String(cmt.userEmail || "").toLowerCase();
+    var cmtName = String(cmt.userName || "").toLowerCase();
+    var cmtRole = String(cmt.role || "").toLowerCase();
 
     /*
-        Cách mới: so bằng email là chuẩn nhất.
+        Cách đúng mới: so bằng email
     */
     if(myEmail && cmtEmail && myEmail === cmtEmail){
         return true;
     }
 
     /*
-        Cách cũ: comment cũ chưa có userEmail thì so bằng tên.
-        Admin cũ có thể đã lưu là Admin.
+        Admin mới: role admin
     */
-    var myName = String(currentUser.username || currentUser.name || "").toLowerCase();
-    var cmtName = String(cmt.userName || "").toLowerCase();
+    if(isAdminEmail(myEmail) && cmtRole === "admin"){
+        return true;
+    }
 
+    /*
+        Bình luận cũ: chưa có email, so bằng tên
+    */
     if(myName && cmtName && myName === cmtName){
         return true;
     }
 
     /*
-        Nếu là admin, gom cả bình luận cũ đã lưu tên Admin.
+        Fix riêng cho lỗi cũ của bạn:
+        Trước đó admin bị lưu thành "Khách".
+        Chỉ gom comment Khách cũ khi tài khoản hiện tại là admin
+        và comment đó chưa có email/role.
     */
-    if(isAdminEmail(myEmail) && cmtName === "admin"){
+    if(
+        isAdminEmail(myEmail) &&
+        cmtName === "khách" &&
+        !cmtEmail &&
+        !cmtRole
+    ){
         return true;
     }
 
@@ -116,7 +129,7 @@ function filterMyComments(){
     });
 }
 
-/* ================== RENDER ================== */
+/* ================= RENDER ================= */
 
 function renderMyComments(){
     if(!commentList){
@@ -128,6 +141,7 @@ function renderMyComments(){
     if(myComments.length === 0){
         if(emptyText){
             emptyText.style.display = "block";
+            emptyText.innerText = "Bạn chưa có bình luận nào.";
         }
         return;
     }
@@ -142,7 +156,7 @@ function renderMyComments(){
 
         var name = cmt.userName || currentUser.username || "Khách";
         var email = String(cmt.userEmail || "").toLowerCase();
-        var role = cmt.role || "user";
+        var role = String(cmt.role || "").toLowerCase();
 
         if(isAdminEmail(email) || role === "admin" || isAdminEmail(currentUser.email)){
             name = "Admin";
@@ -186,7 +200,7 @@ function renderMyComments(){
     });
 }
 
-/* ================== CLEAR MY COMMENT ================== */
+/* ================= XÓA BÌNH LUẬN CÁ NHÂN ================= */
 
 function clearMyComments(){
     if(!confirm("Bạn có chắc muốn xóa tất cả bình luận của mình không?")){
@@ -208,7 +222,7 @@ function clearMyComments(){
     renderMyComments();
 }
 
-/* ================== START ================== */
+/* ================= START ================= */
 
 async function startBinhLuanPage(){
     currentUser = await getCurrentCommentPageUser();
