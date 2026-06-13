@@ -127,40 +127,6 @@ function getImageUrl(img){
     return "";
 }
 
-function isAutoYomooImage(url){
-    if(!url){
-        return false;
-    }
-
-    return (
-        url.includes("Image/7.png") ||
-        url.includes("Image/8.png") ||
-        url.includes("./Image/7.png") ||
-        url.includes("./Image/8.png") ||
-        url.includes("/Image/7.png") ||
-        url.includes("/Image/8.png")
-    );
-}
-
-function createChapterImageWrap(src, alt, extraClass){
-    var wrap = document.createElement("div");
-
-    if(extraClass){
-        wrap.className = "chapter-image-wrap " + extraClass;
-    }else{
-        wrap.className = "chapter-image-wrap";
-    }
-
-    var image = document.createElement("img");
-    image.src = src;
-    image.alt = alt || "";
-    image.loading = "lazy";
-
-    wrap.appendChild(image);
-
-    return wrap;
-}
-
 function insertMiddleAd(parent){
     var adBox = document.createElement("div");
     adBox.className = "dtr-ad dtr-ad-middle";
@@ -210,28 +176,10 @@ function renderChapter(){
 
     var images = Array.isArray(chapter.images) ? chapter.images : [];
 
-    images = images.filter(function(img){
-        var url = getImageUrl(img);
-
-        if(!url){
-            return false;
-        }
-
-        return !isAutoYomooImage(url);
-    });
-
     if(images.length === 0){
         chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
         return;
     }
-
-    var topBanner = createChapterImageWrap(
-        "Image/7.png",
-        "YOMOO đầu truyện",
-        "chapter-auto-banner"
-    );
-
-    chapterImages.appendChild(topBanner);
 
     images.forEach(function(img, index){
         var imageUrl = getImageUrl(img);
@@ -240,26 +188,20 @@ function renderChapter(){
             return;
         }
 
-        var wrap = createChapterImageWrap(
-            imageUrl,
-            manga.title || "",
-            ""
-        );
+        var wrap = document.createElement("div");
+        wrap.className = "chapter-image-wrap";
 
+        var image = document.createElement("img");
+        image.src = imageUrl;
+        image.alt = manga.title || "";
+        image.loading = "lazy";
+		wrap.appendChild(image);
         chapterImages.appendChild(wrap);
 
         if(index === Math.floor(images.length / 2) - 1){
             insertMiddleAd(chapterImages);
         }
     });
-
-    var bottomBanner = createChapterImageWrap(
-        "Image/8.png",
-        "YOMOO cuối truyện",
-        "chapter-auto-banner"
-    );
-
-    chapterImages.appendChild(bottomBanner);
 
     if(chapterImages.innerHTML.trim() === ""){
         chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
