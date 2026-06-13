@@ -1508,3 +1508,31 @@ body{
         height:90px !important;
     }
 }
+@media(max-width:768px){
+    #cwTopAd,
+    #cwMiddleAd,
+    #cwHistoryAd,
+    .safe-ad-box{
+        width:100% !important;
+        max-width:100% !important;
+        height:50px !important;
+        display:flex !important;
+        justify-content:center !important;
+        align-items:center !important;
+        overflow:hidden !important;
+        margin:10px auto 15px !important;
+        padding:0 !important;
+    }
+
+    .safe-ad-frame,
+    .safe-ad-box iframe{
+        width:320px !important;
+        max-width:320px !important;
+        height:50px !important;
+        max-height:50px !important;
+        display:block !important;
+        margin:0 auto !important;
+        border:none !important;
+        overflow:hidden !important;
+    }
+}
