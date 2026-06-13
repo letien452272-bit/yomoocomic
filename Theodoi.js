@@ -1,3 +1,5 @@
+console.log("TheoDoi.js đã chạy bản mới 300");
+
 var followListBox = document.getElementById("followList");
 var followPagination = document.getElementById("followPagination");
 var clearBtn = document.getElementById("clearFollowList") || document.getElementById("clearFollowBtn");
@@ -7,6 +9,8 @@ var perPage = 20;
 
 var followedMangas = [];
 var currentUser = null;
+
+/* ================= SUPABASE + USER ================= */
 
 function getDb(){
     if(typeof getSupabase === "function"){
@@ -38,8 +42,11 @@ async function getLoginUser(){
     return null;
 }
 
+/* ================= HIỂN THỊ THÔNG BÁO ================= */
+
 function showFollowMessage(text){
     if(!followListBox){
+        console.log("Không tìm thấy thẻ #followList");
         return;
     }
 
@@ -49,6 +56,8 @@ function showFollowMessage(text){
         </div>
     `;
 }
+
+/* ================= CHAPTER ================= */
 
 function getChapterNumber(manga){
     if(Array.isArray(manga.chapters) && manga.chapters.length > 0){
@@ -68,9 +77,13 @@ function getChapterNumber(manga){
     return Number(manga.latestChapter || manga.latest_chapter || manga.chapter || 0);
 }
 
+/* ================= LOAD DANH SÁCH THEO DÕI ================= */
+
 async function loadFollowList(){
+    console.log("Bắt đầu load danh sách theo dõi...");
+
     if(!followListBox){
-        console.log("Không tìm thấy #followList trong HTML.");
+        console.log("Lỗi: Không tìm thấy #followList trong HTML.");
         return;
     }
 
@@ -80,10 +93,13 @@ async function loadFollowList(){
 
     if(!db){
         showFollowMessage("Lỗi: Chưa kết nối Supabase.");
+        console.log("Không có Supabase client.");
         return;
     }
 
     currentUser = await getLoginUser();
+
+    console.log("currentUser:", currentUser);
 
     if(!currentUser){
         showFollowMessage("Bạn cần đăng nhập để xem danh sách theo dõi.");
@@ -98,6 +114,7 @@ async function loadFollowList(){
 
     if(followResult.error){
         console.log("Lỗi tải follows:", followResult.error);
+
         showFollowMessage("Lỗi tải danh sách theo dõi: " + followResult.error.message);
         return;
     }
@@ -108,6 +125,7 @@ async function loadFollowList(){
 
     if(followList.length === 0){
         followedMangas = [];
+        window.followedMangas = followedMangas;
         renderFollowList();
         return;
     }
@@ -132,6 +150,7 @@ async function loadFollowList(){
 
     if(mangaResult.error){
         console.log("Lỗi tải mangas:", mangaResult.error);
+
         showFollowMessage("Lỗi tải truyện theo dõi: " + mangaResult.error.message);
         return;
     }
@@ -157,6 +176,8 @@ async function loadFollowList(){
     }else{
         chapters = chapterResult.data || [];
     }
+
+    console.log("chapters:", chapters);
 
     followedMangas = followList.map(function(followItem){
         var mangaId = Number(followItem.manga_id);
@@ -206,8 +227,14 @@ async function loadFollowList(){
         return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
     });
 
+    window.followedMangas = followedMangas;
+
+    console.log("followedMangas sau khi xử lý:", followedMangas);
+
     renderFollowList();
 }
+
+/* ================= RENDER DANH SÁCH ================= */
 
 function renderFollowList(){
     if(!followListBox){
@@ -274,6 +301,8 @@ function renderFollowList(){
     renderPagination(followedMangas.length);
 }
 
+/* ================= PHÂN TRANG ================= */
+
 function renderPagination(total){
     if(!followPagination){
         return;
@@ -305,6 +334,8 @@ function renderPagination(total){
         followPagination.appendChild(btn);
     }
 }
+
+/* ================= ĐỌC / XÓA THEO DÕI ================= */
 
 async function markAsRead(id){
     var db = getDb();
@@ -368,6 +399,8 @@ async function removeFollowById(id){
         return Number(item.id) !== Number(id);
     });
 
+    window.followedMangas = followedMangas;
+
     renderFollowList();
 }
 
@@ -394,8 +427,19 @@ async function clearFollowList(){
     }
 
     followedMangas = [];
+    window.followedMangas = followedMangas;
+
     renderFollowList();
 }
+
+/* ================= GẮN RA WINDOW ĐỂ TEST CONSOLE ================= */
+
+window.loadFollowList = loadFollowList;
+window.renderFollowList = renderFollowList;
+window.followedMangas = followedMangas;
+window.goToStory = goToStory;
+window.removeFollowById = removeFollowById;
+window.clearFollowList = clearFollowList;
 
 if(clearBtn){
     clearBtn.onclick = clearFollowList;
