@@ -1,8 +1,14 @@
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", async function(){
 
     if(typeof updateUserMenu === "function"){
-        updateUserMenu();
+    await updateUserMenu();
+}
+
+setTimeout(async function(){
+    if(typeof updateUserMenu === "function"){
+        await updateUserMenu();
     }
+}, 800);
 
     /* ẨN HEADER TRÊN MOBILE */
     if(window.matchMedia("(max-width: 768px)").matches){
