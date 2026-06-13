@@ -1470,3 +1470,37 @@ body{
         flex-direction:column !important;
     }
 }
+.safe-ad-box{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    width:100%;
+    height:90px;
+    margin:15px auto 20px;
+    overflow:hidden;
+}
+
+.safe-ad-frame{
+    border:none !important;
+    overflow:hidden !important;
+    display:block;
+}
+
+@media(max-width:768px){
+    .safe-ad-box{
+        height:50px;
+        margin:10px auto 15px;
+    }
+
+    .safe-ad-frame{
+        width:320px !important;
+        height:50px !important;
+    }
+}
+
+@media(min-width:769px){
+    .safe-ad-frame{
+        width:728px !important;
+        height:90px !important;
+    }
+}
