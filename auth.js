@@ -3,6 +3,66 @@ var ADMIN_EMAIL = "letien.452272@gmail.com";
 
 var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
 
+/* ================== ADMIN NAME RULE ================== */
+
+function normalizeName(name){
+    return String(name || "")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "");
+}
+
+function isAdminEmail(email){
+    return String(email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+function isBlockedAdminName(name){
+    var cleanName = normalizeName(name);
+
+    /*
+        Chặn:
+        admin
+        admin1
+        admin2
+        admin123
+        Admin
+        ADMIN
+        a d m i n
+    */
+    return /^admin\d*$/.test(cleanName);
+}
+
+function getSafeUsername(username, email){
+    if(isAdminEmail(email)){
+        return "Admin";
+    }
+
+    return String(username || "").trim();
+}
+
+function getDisplayName(user){
+    if(!user){
+        return "Khách";
+    }
+
+    var email = String(user.email || "").toLowerCase();
+
+    if(isAdminEmail(email)){
+        return "Admin";
+    }
+
+    return (
+        user.username ||
+        user.name ||
+        user.user_metadata?.username ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Người dùng"
+    );
+}
+
+/* ================== SUPABASE ================== */
+
 function getSupabase(){
     if(window.supabaseClient){
         return window.supabaseClient;
@@ -55,22 +115,32 @@ async function getCurrentUser(){
     }
 
     var user = result.data.user;
+    var email = user.email || "";
+    var role = isAdminEmail(email) ? "admin" : "user";
+
+    var username = isAdminEmail(email)
+        ? "Admin"
+        : (
+            user.user_metadata?.username ||
+            user.user_metadata?.name ||
+            email
+        );
 
     return {
         id: user.id,
-        email: user.email,
-        username:
-            user.user_metadata?.username ||
-            user.user_metadata?.name ||
-            user.email,
+        email: email,
+        username: username,
+        name: username,
         avatar:
             user.user_metadata?.avatar ||
             user.user_metadata?.avatar_url ||
             DEFAULT_AVATAR,
-        role: String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase() ? "admin" : "user",
+        role: role,
         raw: user
     };
 }
+
+/* ================== REGISTER / LOGIN ================== */
 
 async function registerUser(username, email, password){
     var db = await waitForSupabase();
@@ -89,13 +159,24 @@ async function registerUser(username, email, password){
         return false;
     }
 
+    if(!isAdminEmail(email) && isBlockedAdminName(username)){
+        alert("Tên này không được phép sử dụng.");
+        return false;
+    }
+
+    username = getSafeUsername(username, email);
+
+    var role = isAdminEmail(email) ? "admin" : "user";
+
     var result = await db.auth.signUp({
         email: email,
         password: password,
         options: {
             data: {
                 username: username,
-                avatar: DEFAULT_AVATAR
+                name: username,
+                avatar: DEFAULT_AVATAR,
+                role: role
             }
         }
     });
@@ -107,9 +188,7 @@ async function registerUser(username, email, password){
     }
 
     if(result.data && result.data.user){
-        if(result.data && result.data.user){
-    console.log("User created:", result.data.user);
-}
+        console.log("User created:", result.data.user);
     }
 
     alert("Đăng ký thành công.");
@@ -144,6 +223,19 @@ async function loginUser(email, password){
         return false;
     }
 
+    /*
+        Nếu là admin thật thì ép metadata tên Admin sau khi login.
+    */
+    if(isAdminEmail(email)){
+        await db.auth.updateUser({
+            data: {
+                username: "Admin",
+                name: "Admin",
+                role: "admin"
+            }
+        });
+    }
+
     alert("Đăng nhập thành công.");
     window.location.href = "CW.html";
     return true;
@@ -156,8 +248,14 @@ async function logout(){
         await db.auth.signOut();
     }
 
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("loginUser");
+    localStorage.removeItem("loggedInUser");
+
     window.location.href = "CW.html";
 }
+
+/* ================== REQUIRE LOGIN / ADMIN ================== */
 
 async function requireLogin(){
     var user = await getCurrentUser();
@@ -178,7 +276,7 @@ async function isAdmin(){
         return false;
     }
 
-    return String(user.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    return isAdminEmail(user.email);
 }
 
 async function requireAdmin(){
@@ -192,6 +290,8 @@ async function requireAdmin(){
 
     return true;
 }
+
+/* ================== UPDATE MENU ================== */
 
 async function updateUserMenu(){
     var user = await getCurrentUser();
@@ -211,7 +311,7 @@ async function updateUserMenu(){
     }
 
     if(name){
-        name.textContent = user ? user.username : "Khách";
+        name.textContent = user ? getDisplayName(user) : "Khách";
     }
 
     if(userDropdown){
@@ -219,7 +319,7 @@ async function updateUserMenu(){
         var headEmail = userDropdown.querySelector(".user-head p");
 
         if(headName){
-            headName.textContent = user ? user.username : "Khách";
+            headName.textContent = user ? getDisplayName(user) : "Khách";
         }
 
         if(headEmail){
@@ -273,6 +373,8 @@ async function updateUserMenu(){
     }
 }
 
+/* ================== UPDATE USER ================== */
+
 async function updateUser(userUpdate){
     var db = await waitForSupabase();
 
@@ -288,9 +390,23 @@ async function updateUser(userUpdate){
         return;
     }
 
+    var newUsername = userUpdate.username || user.username;
+    var newAvatar = userUpdate.avatar || user.avatar;
+
+    if(isAdminEmail(user.email)){
+        newUsername = "Admin";
+    }else{
+        if(isBlockedAdminName(newUsername)){
+            alert("Tên này không được phép sử dụng.");
+            return;
+        }
+    }
+
     var newMetadata = {
-        username: userUpdate.username || user.username,
-        avatar: userUpdate.avatar || user.avatar
+        username: newUsername,
+        name: newUsername,
+        avatar: newAvatar,
+        role: user.role
     };
 
     var result = await db.auth.updateUser({
@@ -303,16 +419,30 @@ async function updateUser(userUpdate){
         return;
     }
 
-    await db.from("profiles").upsert({
-        id: user.id,
-        email: user.email,
-        username: newMetadata.username,
-        avatar: newMetadata.avatar,
-        role: user.role
-    });
+    /*
+        Nếu có bảng profiles thì cập nhật.
+        Nếu bảng chưa có hoặc RLS chặn thì chỉ log lỗi, không làm hỏng web.
+    */
+    try{
+        var profileResult = await db.from("profiles").upsert({
+            id: user.id,
+            email: user.email,
+            username: newUsername,
+            avatar: newAvatar,
+            role: user.role
+        });
+
+        if(profileResult.error){
+            console.log("Không cập nhật được profiles:", profileResult.error);
+        }
+    }catch(e){
+        console.log("Bỏ qua cập nhật profiles:", e);
+    }
 
     await updateUserMenu();
 }
+
+/* ================== AVATAR ================== */
 
 async function uploadAvatarToR2(file){
     var user = await getCurrentUser();
@@ -324,7 +454,12 @@ async function uploadAvatarToR2(file){
     var formData = new FormData();
 
     formData.append("file", file);
-    formData.append("type", "avatar");
+
+    /*
+        Worker hiện tại của bạn chưa nhận type avatar,
+        dùng cover để upload được ảnh rồi lấy URL làm avatar.
+    */
+    formData.append("type", "cover");
 
     var response = await fetch(R2_UPLOAD_URL, {
         method: "POST",
@@ -362,6 +497,7 @@ async function changeAvatar(input){
 
     if(!file.type.startsWith("image/")){
         alert("Vui lòng chọn file ảnh.");
+        input.value = "";
         return;
     }
 
@@ -378,8 +514,11 @@ async function changeAvatar(input){
             profileAvatar.src = avatarUrl;
         }
 
+        input.value = "";
+
         alert("Đổi avatar thành công.");
     }catch(error){
+        input.value = "";
         alert("Lỗi đổi avatar: " + error.message);
         console.log(error);
     }
@@ -405,6 +544,8 @@ async function resetAvatar(){
 
     alert("Đã đổi về avatar mặc định.");
 }
+
+/* ================== FOLLOW ================== */
 
 async function followStory(storyId){
     var user = await getCurrentUser();
