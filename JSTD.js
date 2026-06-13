@@ -24,6 +24,28 @@ var mangas = [];
 var commentPage = 1;
 var commentsPerPage = 8;
 
+var ADMIN_EMAIL = "letien.452272@gmail.com";
+
+function isAdminEmail(email){
+    return String(email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+function getCommentDisplayName(user){
+    if(!user){
+        return "Khách";
+    }
+
+    if(isAdminEmail(user.email)){
+        return "Admin";
+    }
+
+    if(typeof getDisplayName === "function"){
+        return getDisplayName(user);
+    }
+
+    return user.username || user.name || user.email || "Người dùng";
+}
+
 async function loadMangaDetail(){
 
     var mangaResult = await supabase
@@ -375,11 +397,11 @@ function setupCommentButton(){
     }
 }
 
-function getCurrentCommentUser(){
+async function getCurrentCommentUser(){
     var user = null;
 
     if(typeof getCurrentUser === "function"){
-        user = getCurrentUser();
+        user = await getCurrentUser();
     }
 
     if(!user){
@@ -388,14 +410,28 @@ function getCurrentCommentUser(){
                JSON.parse(localStorage.getItem("loggedInUser"));
     }
 
-    return user || {
-        username:"Khách",
-        name:"Khách",
-        avatar:"Image/user.svg"
+    if(!user){
+        return {
+            username:"Khách",
+            name:"Khách",
+            email:"",
+            avatar:"Image/user.svg",
+            role:"user"
+        };
+    }
+
+    var displayName = getCommentDisplayName(user);
+
+    return {
+        username: displayName,
+        name: displayName,
+        email: user.email || "",
+        avatar: user.avatar || "Image/user.svg",
+        role: isAdminEmail(user.email) ? "admin" : (user.role || "user")
     };
 }
 
-function sendCommentNow(){
+async function sendCommentNow(){
     var commentInput = document.getElementById("commentInput");
 
     if(!commentInput) return;
@@ -407,7 +443,7 @@ function sendCommentNow(){
         return;
     }
 
-    var user = getCurrentCommentUser();
+    var user = await getCurrentCommentUser();
 
     var comments = JSON.parse(localStorage.getItem("mangaComments")) || {};
     var key = "manga_" + mangaId;
@@ -423,6 +459,8 @@ function sendCommentNow(){
         chapterNumber: "",
         text: text,
         userName: user.username || user.name || "Khách",
+        userEmail: user.email || "",
+        role: user.role || "user",
         avatar: user.avatar || "Image/user.svg",
         createdAt: new Date().toLocaleString("vi-VN"),
         from: "TD"
@@ -465,13 +503,29 @@ function renderComments(){
     }
 
     commentList.innerHTML = pageItems.map(function(item){
+
+        var name = item.userName || "Khách";
+        var email = String(item.userEmail || "").toLowerCase();
+        var role = item.role || "user";
+
+        if(isAdminEmail(email) || role === "admin"){
+            name = "Admin";
+        }
+
+        var adminBadge = "";
+
+        if(isAdminEmail(email) || role === "admin"){
+            adminBadge = `<span class="admin-badge">ADMIN</span>`;
+        }
+
         return `
             <div class="comment-item">
                 <img class="comment-avatar" src="${item.avatar || "Image/user.svg"}" alt="">
 
                 <div class="comment-body">
                     <div class="comment-head">
-                        <b>${item.userName || "Khách"}</b>
+                        <b>${name}</b>
+                        ${adminBadge}
                         ${item.chapterNumber ? `<span>Chapter ${item.chapterNumber}</span>` : ""}
                     </div>
 
