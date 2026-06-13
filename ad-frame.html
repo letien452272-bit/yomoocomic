@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<style>
+html, body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:transparent;
+}
+</style>
+</head>
+
+<body>
+
+<script>
+(function(){
+
+    var params = new URLSearchParams(window.location.search);
+
+    var key = params.get("key");
+    var width = Number(params.get("width"));
+    var height = Number(params.get("height"));
+
+    var allowedAds = {
+        "a5e37a3101f1a538797518fb69cd108b": {
+            width: 728,
+            height: 90
+        },
+        "68c5dd71d67d6721b98864fec634a4d9": {
+            width: 320,
+            height: 50
+        }
+    };
+
+    if(!key || !allowedAds[key]){
+        return;
+    }
+
+    if(width !== allowedAds[key].width || height !== allowedAds[key].height){
+        return;
+    }
+
+    window.atOptions = {
+        key: key,
+        format: "iframe",
+        height: height,
+        width: width,
+        params: {}
+    };
+
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://www.highperformanceformat.com/" + key + "/invoke.js";
+    document.body.appendChild(script);
+
+})();
+</script>
+
+</body>
+</html>
