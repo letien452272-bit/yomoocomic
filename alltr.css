@@ -275,6 +275,69 @@ body{
     width:15px;
     height:15px;
 }
+/* ===== PC - TẤT CẢ TRUYỆN ===== */
+@media(min-width:769px){
+
+    #allTrComicList.alltr-grid{
+        display:grid !important;
+        grid-template-columns:repeat(6, 150px) !important;
+        gap:18px !important;
+        justify-content:flex-start !important;
+
+        width:100% !important;
+        max-width:1200px !important;
+        margin:25px auto 0 !important;
+        padding:0 !important;
+        box-sizing:border-box !important;
+    }
+
+    .alltr-comic{
+        width:150px !important;
+        height:300px !important;
+        background:#253247 !important;
+        border-radius:8px !important;
+        overflow:hidden !important;
+    }
+
+    .alltr-cover{
+        width:150px !important;
+        height:220px !important;
+    }
+
+    .alltr-cover img{
+        width:150px !important;
+        height:220px !important;
+        object-fit:cover !important;
+        display:block !important;
+    }
+
+    .alltr-info{
+        height:80px !important;
+        padding:8px !important;
+        box-sizing:border-box !important;
+    }
+
+    .alltr-info h3{
+        font-size:14px !important;
+        line-height:1.25 !important;
+        height:35px !important;
+        margin:0 0 6px !important;
+        overflow:hidden !important;
+        color:white !important;
+    }
+
+    .alltr-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        font-size:12px !important;
+    }
+
+    .alltr-view img{
+        width:12px !important;
+        height:12px !important;
+    }
+}
 @media screen and (max-width:768px){
 
     /* Hai ô lọc */
@@ -782,13 +845,6 @@ body{
 .dtr-ad-mobile{
     display:none;
 }
-#allTrComicList.alltr-grid{
-    display:flex;
-    flex-wrap:wrap;
-    gap:14px;
-    justify-content:flex-start;
-}
-
 .alltr-comic{
     width:150px;
     height:300px;
@@ -879,14 +935,6 @@ body{
 }
 /* MOBILE */
 @media(max-width:768px){
-
-    #allTrComicList.alltr-grid{
-        display:grid !important;
-        grid-template-columns:repeat(2, 120px) !important;
-        gap:12px !important;
-        justify-content:center !important;
-    }
-
     .alltr-comic{
         width:120px !important;
         height:245px !important;
@@ -903,23 +951,6 @@ body{
     }
 }
 @media(max-width:768px){
-
-     #allTrComicList.alltr-grid{
-        display:grid !important;
-        grid-template-columns:repeat(2, 120px) !important;
-
-        column-gap:12px !important;
-        row-gap:18px !important;
-
-        justify-content:flex-start !important;
-
-        width:100% !important;
-        margin:22px 0 0 0 !important;
-        padding-left:14px !important;
-
-        box-sizing:border-box !important;
-    }
-
     .alltr-comic{
         width:120px !important;
         height:245px !important;
@@ -983,5 +1014,101 @@ body{
     .alltr-view img{
         width:10px !important;
         height:10px !important;
+    }
+}
+/* MOBILE - TẤT CẢ TRUYỆN: 3 TRUYỆN / 1 HÀNG */
+@media(max-width:768px){
+
+    #allTrComicList.alltr-grid{
+        display:grid !important;
+        grid-template-columns:repeat(3, 1fr) !important;
+        gap:10px !important;
+
+        width:100% !important;
+        padding:0 10px !important;
+        margin:20px 0 0 0 !important;
+
+        box-sizing:border-box !important;
+        justify-content:center !important;
+    }
+
+    .alltr-comic{
+        width:100% !important;
+        height:215px !important;
+
+        background:#253247 !important;
+        border-radius:8px !important;
+        overflow:hidden !important;
+        cursor:pointer !important;
+    }
+
+    .alltr-cover{
+        width:100% !important;
+        height:145px !important;
+        overflow:hidden !important;
+    }
+
+    .alltr-cover img{
+        width:100% !important;
+        height:145px !important;
+        object-fit:cover !important;
+        display:block !important;
+    }
+
+    .alltr-info{
+        height:70px !important;
+        padding:5px !important;
+        box-sizing:border-box !important;
+    }
+
+    .alltr-info h3{
+        color:white !important;
+        font-size:10px !important;
+        line-height:1.25 !important;
+
+        height:26px !important;
+        margin:0 0 5px 0 !important;
+
+        overflow:hidden !important;
+        display:-webkit-box !important;
+        -webkit-line-clamp:2 !important;
+        -webkit-box-orient:vertical !important;
+
+        text-align:left !important;
+        white-space:normal !important;
+    }
+
+    .alltr-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+
+        font-size:9px !important;
+        gap:3px !important;
+    }
+
+    .alltr-chapter{
+        display:flex !important;
+        align-items:center !important;
+        gap:3px !important;
+
+        color:#7ed957 !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+    }
+
+    .alltr-view{
+        display:flex !important;
+        align-items:center !important;
+        gap:3px !important;
+
+        color:#f5c542 !important;
+        white-space:nowrap !important;
+    }
+
+    .alltr-view img{
+        width:8px !important;
+        height:8px !important;
+        object-fit:contain !important;
     }
 }
