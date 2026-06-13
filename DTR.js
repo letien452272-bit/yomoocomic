@@ -1,8 +1,28 @@
-function requireLoginToRead(){
+function isAdminEmail(email){
+    return String(email || "").toLowerCase() === "letien.452272@gmail.com";
+}
+
+function getCommentDisplayName(user){
+    if(!user){
+        return "Khách";
+    }
+
+    if(isAdminEmail(user.email)){
+        return "Admin";
+    }
+
+    if(typeof getDisplayName === "function"){
+        return getDisplayName(user);
+    }
+
+    return user.username || user.name || user.email || "Người dùng";
+}
+
+async function requireLoginToRead(){
     var currentUser = null;
 
     if(typeof getCurrentUser === "function"){
-        currentUser = getCurrentUser();
+        currentUser = await getCurrentUser();
     }
 
     if(!currentUser){
@@ -21,12 +41,18 @@ function requireLoginToRead(){
     return true;
 }
 
-if(!requireLoginToRead()){
-    throw new Error("Chưa đăng nhập, không cho đọc truyện.");
-}
+async function startReader(){
+    var canRead = await requireLoginToRead();
 
-if(typeof updateUserMenu === "function"){
-    updateUserMenu();
+    if(!canRead){
+        throw new Error("Chưa đăng nhập, không cho đọc truyện.");
+    }
+
+    if(typeof updateUserMenu === "function"){
+        updateUserMenu();
+    }
+
+    loadReaderData();
 }
 
 var mangaId = Number(localStorage.getItem("currentMangaId"));
@@ -127,6 +153,59 @@ function getImageUrl(img){
     return "";
 }
 
+function isAutoYomooImage(img){
+    var url = getImageUrl(img).toLowerCase();
+    var name = "";
+    var type = "";
+
+    if(typeof img === "string"){
+        try{
+            var parsed = JSON.parse(img);
+            name = (parsed.name || "").toLowerCase();
+            type = (parsed.type || "").toLowerCase();
+        }catch(e){
+            name = img.toLowerCase();
+        }
+    }
+
+    if(typeof img === "object" && img){
+        name = (img.name || "").toLowerCase();
+        type = (img.type || "").toLowerCase();
+    }
+
+    return (
+        url.includes("image/7.png") ||
+        url.includes("image/8.png") ||
+        name.includes("7.png") ||
+        name.includes("8.png") ||
+        name.includes("yomoo-start") ||
+        name.includes("yomoo-end") ||
+        name.includes("yomoo đầu") ||
+        name.includes("yomoo cuối") ||
+        type.includes("auto-start") ||
+        type.includes("auto-end")
+    );
+}
+
+function createChapterImageWrap(src, alt, extraClass){
+    var wrap = document.createElement("div");
+
+    if(extraClass){
+        wrap.className = "chapter-image-wrap " + extraClass;
+    }else{
+        wrap.className = "chapter-image-wrap";
+    }
+
+    var image = document.createElement("img");
+    image.src = src;
+    image.alt = alt || "";
+    image.loading = "lazy";
+
+    wrap.appendChild(image);
+
+    return wrap;
+}
+
 function insertMiddleAd(parent){
     var adBox = document.createElement("div");
     adBox.className = "dtr-ad dtr-ad-middle";
@@ -176,10 +255,28 @@ function renderChapter(){
 
     var images = Array.isArray(chapter.images) ? chapter.images : [];
 
+    images = images.filter(function(img){
+        var url = getImageUrl(img);
+
+        if(!url){
+            return false;
+        }
+
+        return !isAutoYomooImage(img);
+    });
+
     if(images.length === 0){
         chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
         return;
     }
+
+    var topBanner = createChapterImageWrap(
+        "Image/7.png",
+        "YOMOO đầu truyện",
+        "chapter-auto-banner"
+    );
+
+    chapterImages.appendChild(topBanner);
 
     images.forEach(function(img, index){
         var imageUrl = getImageUrl(img);
@@ -188,20 +285,26 @@ function renderChapter(){
             return;
         }
 
-        var wrap = document.createElement("div");
-        wrap.className = "chapter-image-wrap";
+        var wrap = createChapterImageWrap(
+            imageUrl,
+            manga.title || "",
+            ""
+        );
 
-        var image = document.createElement("img");
-        image.src = imageUrl;
-        image.alt = manga.title || "";
-        image.loading = "lazy";
-		wrap.appendChild(image);
         chapterImages.appendChild(wrap);
 
         if(index === Math.floor(images.length / 2) - 1){
             insertMiddleAd(chapterImages);
         }
     });
+
+    var bottomBanner = createChapterImageWrap(
+        "Image/8.png",
+        "YOMOO cuối truyện",
+        "chapter-auto-banner"
+    );
+
+    chapterImages.appendChild(bottomBanner);
 
     if(chapterImages.innerHTML.trim() === ""){
         chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
@@ -452,13 +555,11 @@ function setupScrollButtons(){
     }
 }
 
-loadReaderData();
-
-function getCurrentCommentUser(){
+async function getCurrentCommentUser(){
     var user = null;
 
     if(typeof getCurrentUser === "function"){
-        user = getCurrentUser();
+        user = await getCurrentUser();
     }
 
     if(!user){
@@ -467,14 +568,28 @@ function getCurrentCommentUser(){
                JSON.parse(localStorage.getItem("loggedInUser"));
     }
 
-    return user || {
-        username:"Khách",
-        name:"Khách",
-        avatar:"Image/user.svg"
+    if(!user){
+        return {
+            username:"Khách",
+            name:"Khách",
+            email:"",
+            avatar:"Image/user.svg",
+            role:"user"
+        };
+    }
+
+    var displayName = getCommentDisplayName(user);
+
+    return {
+        username: displayName,
+        name: displayName,
+        email: user.email || "",
+        avatar: user.avatar || "Image/user.svg",
+        role: isAdminEmail(user.email) ? "admin" : (user.role || "user")
     };
 }
 
-function sendCommentNow(){
+async function sendCommentNow(){
     var commentInput = document.getElementById("commentInput");
 
     if(!commentInput) return;
@@ -486,7 +601,7 @@ function sendCommentNow(){
         return;
     }
 
-    var user = getCurrentCommentUser();
+    var user = await getCurrentCommentUser();
 
     var comments = JSON.parse(localStorage.getItem("mangaComments")) || {};
     var key = "manga_" + mangaId;
@@ -502,6 +617,8 @@ function sendCommentNow(){
         chapterNumber: chapter ? chapter.number : "",
         text: text,
         userName: user.username || user.name || "Khách",
+        userEmail: user.email || "",
+        role: user.role || "user",
         avatar: user.avatar || "Image/user.svg",
         createdAt: new Date().toLocaleString("vi-VN"),
         from: "DTR"
@@ -528,11 +645,27 @@ function renderComments(){
     }
 
     commentList.innerHTML = list.slice().reverse().map(function(item){
+
+        var name = item.userName || "Khách";
+        var email = String(item.userEmail || "").toLowerCase();
+        var role = item.role || "user";
+
+        if(isAdminEmail(email) || role === "admin"){
+            name = "Admin";
+        }
+
+        var adminBadge = "";
+
+        if(isAdminEmail(email) || role === "admin"){
+            adminBadge = `<span class="admin-badge">ADMIN</span>`;
+        }
+
         return `
             <div class="comment-item">
                 <img class="comment-avatar" src="${item.avatar || "Image/user.svg"}" alt="">
                 <div>
-                    <b>${item.userName || "Khách"}</b>
+                    <b>${name}</b>
+                    ${adminBadge}
                     ${item.chapterNumber ? `<span>Chapter ${item.chapterNumber}</span>` : ""}
                     <p>${item.text}</p>
                     <small>${item.createdAt}</small>
@@ -541,3 +674,5 @@ function renderComments(){
         `;
     }).join("");
 }
+
+startReader();
