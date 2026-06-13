@@ -5,6 +5,8 @@ const SUPABASE_KEY = "sb_publishable_IOlxiWS-4pfUqR3Sbh0qyg_oZhe8FBT";
 
 /* ================= INIT SUPABASE ================= */
 
+var supabase = null;
+
 if(!window.supabase){
     console.error("Lỗi: Chưa load thư viện Supabase CDN trước supabase.js");
 }else{
@@ -13,12 +15,16 @@ if(!window.supabase){
         SUPABASE_KEY
     );
 
-    var supabase = window.supabaseClient;
+    supabase = window.supabaseClient;
 
     console.log("Supabase đã kết nối thành công.");
 }
 
 /* ================= HELPER ================= */
+
+function getSupabase(){
+    return window.supabaseClient || supabase || null;
+}
 
 function getSupabaseClient(){
     return window.supabaseClient || supabase || null;
@@ -31,7 +37,7 @@ async function waitForSupabase(){
         return db;
     }
 
-    for(var i = 0; i < 20; i++){
+    for(var i = 0; i < 30; i++){
         await new Promise(function(resolve){
             setTimeout(resolve, 100);
         });
@@ -79,4 +85,18 @@ async function getSupabaseSession(){
     }
 
     return result.data.session;
+}
+
+/* ================= DEBUG TEST ================= */
+
+async function testSupabase(){
+    var db = await waitForSupabase();
+
+    if(!db){
+        console.log("Supabase chưa sẵn sàng.");
+        return false;
+    }
+
+    console.log("Supabase OK:", db);
+    return true;
 }
