@@ -25,7 +25,6 @@ async function loadMangasFromSupabase(){
 
     mangas = result.data || [];
     renderMangas(mangas);
-
 }
 
 async function getChapterCount(mangaId){
@@ -48,19 +47,65 @@ function getViewNumber(manga){
 }
 
 function getActiveStatus(manga){
-    if(manga.active === false || manga.active === "Inactive"){
+    if(
+        manga.active === false ||
+        manga.active === "Inactive" ||
+        manga.active === "inactive" ||
+        manga.active === "Ẩn"
+    ){
         return "Inactive";
     }
 
     return "Active";
 }
 
+/* SỬA LỖI ONGOING Ở ĐÂY */
+function normalizeText(text){
+    return String(text || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
 function getMangaStatus(manga){
-    if(manga.status === "Đã hoàn thành" || manga.status === "Hoàn thành"){
-        return "Đã hoàn thành";
+
+    /*
+        Ưu tiên đọc complete_status nếu có.
+        Nếu không có thì đọc status.
+        Cách này tránh lỗi trang sửa lưu 1 field,
+        trang danh sách lại đọc field khác.
+    */
+    var rawStatus =
+        manga.complete_status ||
+        manga.completion_status ||
+        manga.finish_status ||
+        manga.manga_status ||
+        manga.status ||
+        "";
+
+    var status = normalizeText(rawStatus);
+
+    if(
+        status === "da hoan thanh" ||
+        status === "hoan thanh" ||
+        status === "completed" ||
+        status === "complete" ||
+        status === "done" ||
+        status === "finished"
+    ){
+        return "completed";
     }
 
-    return "Đang tiến hành";
+    return "ongoing";
+}
+
+function getMangaStatusText(manga){
+    return getMangaStatus(manga) === "completed" ? "Completed" : "Ongoing";
+}
+
+function getMangaStatusClass(manga){
+    return getMangaStatus(manga) === "completed" ? "green" : "orange";
 }
 
 function renderGenres(genres){
@@ -114,8 +159,8 @@ async function renderMangas(list){
                 <td id="chapter-count-${manga.id}">Đang tải...</td>
 
                 <td>
-                    <span class="tag orange">
-                        ${getMangaStatus(manga) === "Đã hoàn thành" ? "Completed" : "Ongoing"}
+                    <span class="tag ${getMangaStatusClass(manga)}">
+                        ${getMangaStatusText(manga)}
                     </span>
                 </td>
 
@@ -132,11 +177,11 @@ async function renderMangas(list){
                 <td>${getViewNumber(manga)}</td>
 
                 <td class="action-cell">
-					<div class="action-buttons">
-						<button class="edit-btn" onclick="openMangaDetail(${manga.id})">✎</button>
-						<button class="delete-btn" onclick="deleteManga(${manga.id})">X</button>
-					</div>
-				</td>
+                    <div class="action-buttons">
+                        <button class="edit-btn" onclick="openMangaDetail(${manga.id})">✎</button>
+                        <button class="delete-btn" onclick="deleteManga(${manga.id})">X</button>
+                    </div>
+                </td>
             </tr>
         `;
     }).join("");
@@ -174,7 +219,15 @@ function filterMangas(){
             originalName.toLowerCase().includes(keyword) ||
             genreText.includes(keyword);
 
-        var matchStatus = status === "" || getMangaStatus(manga) === status;
+        var mangaStatus = getMangaStatus(manga);
+        var normalizedFilterStatus = normalizeText(status);
+
+        var matchStatus =
+            status === "" ||
+            normalizedFilterStatus === mangaStatus ||
+            normalizedFilterStatus === normalizeText(getMangaStatusText(manga)) ||
+            normalizedFilterStatus === normalizeText(mangaStatus === "completed" ? "Đã hoàn thành" : "Đang tiến hành");
+
         var matchActive = active === "" || getActiveStatus(manga) === active;
 
         return matchKeyword && matchStatus && matchActive;
