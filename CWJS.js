@@ -188,12 +188,14 @@ function renderUpdatedMangas(){
     });
 
     var limitUpdatedMangas = window.innerWidth <= 768 ? 9 : 15;
-	var displayMangas = releasedMangas.slice(0, limitUpdatedMangas);
+    var displayMangas = releasedMangas.slice(0, limitUpdatedMangas);
 
     displayMangas.forEach(function(manga){
         var comic = document.createElement("a");
-		comic.className = "new-comic-card";
-		comic.href = "TD.html?id=" + manga.id;
+
+        comic.className = "new-comic-card";
+        comic.href = "TD.html?id=" + manga.id;
+
         var timeText = getTimeAgo(manga.updatedAt || manga.created_at) || "NEW";
 
         comic.innerHTML = `
@@ -214,9 +216,9 @@ function renderUpdatedMangas(){
             </div>
         `;
 
-comic.onclick = function(){
-    localStorage.setItem("currentMangaId", manga.id);
-};
+        comic.onclick = function(){
+            localStorage.setItem("currentMangaId", manga.id);
+        };
 
         comicList.appendChild(comic);
     });
@@ -228,7 +230,6 @@ comic.onclick = function(){
         </a>
     `;
 }
-
 /* TRUYEN SAP RA MAT */
 function renderComingMangas(){
     if(!comingList) return;
