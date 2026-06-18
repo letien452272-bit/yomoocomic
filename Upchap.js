@@ -496,3 +496,56 @@ saveChapterBtn.onclick = async function(){
 };
 
 initPage();
+/* GIỚI HẠN PREVIEW ẢNH 3 HÀNG RỒI CUỘN */
+var fixPreviewScrollStyle = document.createElement("style");
+
+fixPreviewScrollStyle.innerHTML = `
+    #imagePreview{
+        display:grid !important;
+        grid-template-columns:repeat(6, 1fr) !important;
+        gap:14px !important;
+
+        max-height:765px !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+
+        padding-right:10px !important;
+        box-sizing:border-box !important;
+    }
+
+    #imagePreview .preview-item{
+        height:245px !important;
+        overflow:hidden !important;
+        box-sizing:border-box !important;
+    }
+
+    #imagePreview .preview-item img{
+        width:100% !important;
+        height:155px !important;
+        object-fit:cover !important;
+        display:block !important;
+    }
+
+    #imagePreview::-webkit-scrollbar{
+        width:8px !important;
+    }
+
+    #imagePreview::-webkit-scrollbar-thumb{
+        background:#4b5f7c !important;
+        border-radius:10px !important;
+    }
+
+    #imagePreview::-webkit-scrollbar-track{
+        background:#172033 !important;
+        border-radius:10px !important;
+    }
+
+    @media screen and (max-width:768px){
+        #imagePreview{
+            grid-template-columns:repeat(2, 1fr) !important;
+            max-height:765px !important;
+        }
+    }
+`;
+
+document.head.appendChild(fixPreviewScrollStyle);
