@@ -376,33 +376,58 @@ function renderHistory(){
 
     if(!historyList) return;
 
-    var history = JSON.parse(localStorage.getItem("readingHistory")) || [];
+    var history = [];
+
+    try{
+        history = JSON.parse(localStorage.getItem("readingHistory")) || [];
+    }catch(e){
+        history = [];
+    }
+
+    historyList.classList.add("history-grid");
+    historyList.innerHTML = "";
 
     if(history.length === 0){
-        historyList.innerHTML = "<p>Chưa có lịch sử đọc</p>";
+        historyList.innerHTML = `<p class="history-empty">Chưa có lịch sử đọc</p>`;
         return;
     }
 
-    historyList.innerHTML = "";
-
-    history.forEach(function(id){
+    history.slice(0, 10).forEach(function(id){
         var manga = mangas.find(function(item){
             return Number(item.id) === Number(id);
         });
 
         if(!manga) return;
 
-        historyList.innerHTML += `
-            <div class="history-item" onclick="openMangaUser(${manga.id})">
-                <img src="${manga.cover || 'Image/no-image.png'}" alt="">
+        var card = document.createElement("div");
+        card.className = "history-card";
 
-                <div>
-                    <h4>${manga.title || "Không tên"}</h4>
-                    <p>Chap ${getChapterNumber(manga)}</p>
-                </div>
+        card.onclick = function(){
+            openMangaUser(manga.id);
+        };
+
+        card.innerHTML = `
+            <div class="history-cover">
+                <img 
+                    src="${manga.cover || 'Image/no-image.png'}" 
+                    alt="${manga.title || 'Không tên'}"
+                    onerror="this.src='Image/no-image.png'"
+                >
+            </div>
+
+            <h3 class="history-title">${manga.title || "Không tên"}</h3>
+
+            <div class="history-bottom">
+                <span>Chap ${getChapterNumber(manga)}</span>
             </div>
         `;
+
+        historyList.appendChild(card);
     });
+
+    if(historyList.innerHTML.trim() === ""){
+        historyList.innerHTML = `<p class="history-empty">Chưa có lịch sử đọc</p>`;
+    }
 }
 
 /* CHAY */
@@ -919,6 +944,139 @@ fixMobileComicAndRankStyle.innerHTML = `
     }
 }
 `;
-
 document.head.appendChild(fixMobileComicAndRankStyle);
+var fixHistoryStyle = document.createElement("style");
+
+fixHistoryStyle.innerHTML = `
+/* LỊCH SỬ ĐỌC */
+#historyList.history-grid{
+    width:100% !important;
+
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+
+    gap:16px !important;
+    flex-wrap:wrap !important;
+
+    margin-top:18px !important;
+    padding:0 10px 25px !important;
+    box-sizing:border-box !important;
+}
+
+#historyList .history-card{
+    width:135px !important;
+    min-width:135px !important;
+    max-width:135px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+
+    background:transparent !important;
+    color:#fff !important;
+    text-align:center !important;
+    cursor:pointer !important;
+    overflow:hidden !important;
+}
+
+#historyList .history-cover{
+    width:120px !important;
+    height:170px !important;
+
+    border-radius:6px !important;
+    overflow:hidden !important;
+    background:#26364a !important;
+}
+
+#historyList .history-cover img{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+    display:block !important;
+}
+
+#historyList .history-title{
+    width:120px !important;
+
+    font-size:13px !important;
+    line-height:16px !important;
+    height:32px !important;
+
+    margin:8px 0 4px 0 !important;
+
+    color:#fff !important;
+    font-weight:700 !important;
+    text-align:center !important;
+
+    overflow:hidden !important;
+    display:-webkit-box !important;
+    -webkit-line-clamp:2 !important;
+    -webkit-box-orient:vertical !important;
+}
+
+#historyList .history-bottom{
+    width:120px !important;
+
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+
+    font-size:12px !important;
+    color:#69ff7e !important;
+    font-weight:700 !important;
+}
+
+#historyList .history-empty{
+    width:100% !important;
+    text-align:center !important;
+    color:#fff !important;
+    font-size:16px !important;
+    margin:0 !important;
+}
+
+/* MOBILE */
+@media screen and (max-width:768px){
+    #historyList.history-grid{
+        justify-content:flex-start !important;
+        flex-wrap:nowrap !important;
+
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+
+        gap:10px !important;
+        padding:0 8px 12px !important;
+        box-sizing:border-box !important;
+    }
+
+    #historyList .history-card{
+        width:105px !important;
+        min-width:105px !important;
+        max-width:105px !important;
+    }
+
+    #historyList .history-cover{
+        width:90px !important;
+        height:128px !important;
+    }
+
+    #historyList .history-title{
+        width:90px !important;
+
+        font-size:12px !important;
+        line-height:15px !important;
+        height:30px !important;
+
+        margin:6px 0 4px 0 !important;
+    }
+
+    #historyList .history-bottom{
+        width:90px !important;
+        font-size:11px !important;
+    }
+}
+`;
+
+document.head.appendChild(fixHistoryStyle);
 loadDataFromSupabase();
