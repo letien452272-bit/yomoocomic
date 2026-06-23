@@ -187,7 +187,7 @@ function renderUpdatedMangas(){
              - new Date(a.updatedAt || a.created_at || 0);
     });
 
-    var limitUpdatedMangas = window.innerWidth <= 768 ? 9 : 15;
+    var limitUpdatedMangas = window.innerWidth <= 768 ? 9 : 14;
     var displayMangas = releasedMangas.slice(0, limitUpdatedMangas);
 
     displayMangas.forEach(function(manga){
