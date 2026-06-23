@@ -125,10 +125,62 @@ async function loadReaderData(){
     renderComments();
 }
 
+function getLocalData(key, defaultValue){
+    try{
+        var data = JSON.parse(localStorage.getItem(key));
+
+        if(data === null || data === undefined){
+            return defaultValue;
+        }
+
+        return data;
+    }catch(e){
+        return defaultValue;
+    }
+}
+
 function saveReadingProgress(){
-    var readingProgress = JSON.parse(localStorage.getItem("readingProgress")) || {};
-    readingProgress[mangaId] = chapterId;
+    if(!mangaId || !chapterId){
+        return;
+    }
+
+    /* LƯU CHAP ĐỌC TIẾP */
+    var readingProgress = getLocalData("readingProgress", {});
+
+    readingProgress[String(mangaId)] = Number(chapterId);
+
     localStorage.setItem("readingProgress", JSON.stringify(readingProgress));
+
+
+    /* LƯU LỊCH SỬ ĐỌC CHO TRANG CHỦ */
+    var history = getLocalData("readingHistory", []);
+
+    history = history.filter(function(id){
+        return Number(id) !== Number(mangaId);
+    });
+
+    history.unshift(Number(mangaId));
+
+    if(history.length > 10){
+        history = history.slice(0, 10);
+    }
+
+    localStorage.setItem("readingHistory", JSON.stringify(history));
+
+
+    /* LƯU THÊM THÔNG TIN CHAP ĐANG ĐỌC */
+    var readingHistoryDetail = getLocalData("readingHistoryDetail", {});
+
+    readingHistoryDetail[String(mangaId)] = {
+        mangaId: Number(mangaId),
+        chapterId: Number(chapterId),
+        chapterNumber: chapter ? Number(chapter.number || 0) : 0,
+        mangaTitle: manga ? manga.title || "Không tên" : "Không tên",
+        mangaCover: manga ? manga.cover || "Image/no-image.png" : "Image/no-image.png",
+        updatedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem("readingHistoryDetail", JSON.stringify(readingHistoryDetail));
 }
 
 function getImageUrl(img){
