@@ -1,529 +1,399 @@
-var mangaTableBody = document.getElementById("mangaTableBody"); 
-var totalManga = document.getElementById("totalManga");
-var showingText = document.getElementById("showingText");
+var ADMIN_EMAIL = "letien.452272@gmail.com";
+var isRegistering = false;
 
-var searchInput = document.getElementById("searchInput");
-var searchBtn = document.getElementById("searchBtn");
-var statusFilter = document.getElementById("statusFilter");
-var activeFilter = document.getElementById("activeFilter");
-var sortSelect = document.getElementById("sortSelect");
+/* ================== ĐỔI ALERT LỖI TIẾNG ANH SANG TIẾNG VIỆT ================== */
 
-var paginationBox =
-    document.getElementById("pagination") ||
-    document.querySelector(".pagination") ||
-    document.querySelector(".dataTables_paginate") ||
-    document.querySelector(".table-pagination");
-var mangas = [];
-var filteredMangas = [];
+var oldAlert = window.alert;
 
-var currentPage = 1;
-var perPage = 10;
+window.alert = function(message){
+    var text = String(message || "");
 
-async function loadMangasFromSupabase(){
-
-    var mangaResult = await supabase
-        .from("mangas")
-        .select("*")
-        .order("id", { ascending: false });
-
-    if(mangaResult.error){
-        console.log(mangaResult.error);
-        alert("Lỗi tải danh sách truyện: " + mangaResult.error.message);
+    if(text.includes("Password should be at least 6 characters")){
+        oldAlert("Mật khẩu phải có ít nhất 6 ký tự!");
         return;
     }
 
-    var mangaList = mangaResult.data || [];
-
-    var chapterResult = await supabase
-        .from("chapters")
-        .select("id, manga_id, created_at")
-        .order("id", { ascending: false });
-
-    var chapterList = [];
-
-    if(chapterResult.error){
-        console.log("Lỗi tải chapter:", chapterResult.error);
-
-        /*
-            Nếu bảng chapters lỗi quyền RLS hoặc thiếu cột,
-            vẫn cho hiện danh sách truyện, chỉ để số chương = 0.
-        */
-        chapterList = [];
-    }
-    else {
-        chapterList = chapterResult.data || [];
+    if(text.includes("User already registered") || text.includes("already registered")){
+        oldAlert("Email này đã được đăng ký rồi!");
+        return;
     }
 
-    var chapterInfo = {};
+    if(text.includes("Invalid email") || text.includes("invalid email")){
+        oldAlert("Email không hợp lệ!");
+        return;
+    }
 
-    chapterList.forEach(function(chap){
+    if(text.includes("Signup disabled") || text.includes("signup disabled")){
+        oldAlert("Chức năng đăng ký đang bị tắt!");
+        return;
+    }
 
-        var mangaId = chap.manga_id;
+    oldAlert(message);
+};
 
-        if(!chapterInfo[mangaId]){
-            chapterInfo[mangaId] = {
-                count: 0,
-                latestChapterAt: "",
-                latestChapterId: 0
-            };
+/* ================== ĐỔI LỖI SUPABASE SANG TIẾNG VIỆT ================== */
+
+function getRegisterErrorMessage(errorMessage){
+
+    var message = String(errorMessage || "").toLowerCase();
+
+    if(message.includes("password should be at least 6 characters")){
+        return "Mật khẩu phải có ít nhất 6 ký tự!";
+    }
+
+    if(message.includes("user already registered") || message.includes("already registered")){
+        return "Email này đã được đăng ký rồi!";
+    }
+
+    if(message.includes("invalid email")){
+        return "Email không hợp lệ!";
+    }
+
+    if(message.includes("signup disabled")){
+        return "Chức năng đăng ký đang bị tắt!";
+    }
+
+    if(message.includes("email rate limit exceeded")){
+        return "Bạn thao tác quá nhanh, vui lòng thử lại sau!";
+    }
+
+    if(message.includes("weak password")){
+        return "Mật khẩu quá yếu, vui lòng nhập mật khẩu mạnh hơn!";
+    }
+
+    return "Lỗi đăng ký, vui lòng kiểm tra lại thông tin!";
+}
+
+/* ================== LẤY ĐÚNG FORM ĐĂNG KÝ ================== */
+
+function getRegisterButton(){
+    return (
+        document.getElementById("registerBtn") ||
+        document.getElementById("signupBtn") ||
+        document.querySelector(".register-btn") ||
+        document.querySelector(".signup-btn") ||
+        Array.from(document.querySelectorAll("button")).find(function(btn){
+            return String(btn.innerText || "").trim().toLowerCase().includes("đăng ký");
+        })
+    );
+}
+
+function getRegisterRoot(){
+
+    var btn = getRegisterButton();
+
+    if(btn){
+        var form = btn.closest("form");
+
+        if(form){
+            return form;
         }
 
-        chapterInfo[mangaId].count++;
+        var parent = btn.parentElement;
 
-        var chapTime = chap.created_at || "";
+        while(parent && parent !== document.body){
+            var hasEmail = parent.querySelector('input[type="email"], input[id*="email"], input[name*="email"]');
+            var hasPassword = parent.querySelector('input[type="password"]');
+
+            if(hasEmail || hasPassword){
+                return parent;
+            }
+
+            parent = parent.parentElement;
+        }
+    }
+
+    var forms = document.querySelectorAll("form");
+
+    for(var i = 0; i < forms.length; i++){
+        var formItem = forms[i];
 
         if(
-            !chapterInfo[mangaId].latestChapterAt ||
-            new Date(chapTime).getTime() > new Date(chapterInfo[mangaId].latestChapterAt).getTime()
+            formItem.querySelector('input[type="password"]') ||
+            formItem.innerText.includes("Đăng Ký") ||
+            formItem.innerText.includes("Đăng ký")
         ){
-            chapterInfo[mangaId].latestChapterAt = chapTime;
-            chapterInfo[mangaId].latestChapterId = chap.id;
+            return formItem;
         }
-
-        if(Number(chap.id) > Number(chapterInfo[mangaId].latestChapterId || 0)){
-            chapterInfo[mangaId].latestChapterId = chap.id;
-        }
-    });
-
-    mangas = mangaList.map(function(manga){
-
-        var info = chapterInfo[manga.id] || {
-            count: 0,
-            latestChapterAt: manga.created_at || "",
-            latestChapterId: 0
-        };
-
-        manga.chapter_count = info.count;
-        manga.latest_chapter_at = info.latestChapterAt || manga.created_at || "";
-        manga.latest_chapter_id = info.latestChapterId || 0;
-
-        return manga;
-    });
-
-    filterMangas();
-}
-
-function getViewNumber(manga){
-    return Number(manga.views || manga.view || 0);
-}
-
-function getActiveStatus(manga){
-    if(
-        manga.active === false ||
-        manga.active === "Inactive" ||
-        manga.active === "inactive" ||
-        manga.active === "Ẩn"
-    ){
-        return "Inactive";
     }
 
-    return "Active";
+    return document.body;
 }
 
-function normalizeText(text){
-    return String(text || "")
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-}
+function isCaptchaInput(input){
 
-function isAllValue(value){
+    var id = String(input.id || "").toLowerCase();
+    var name = String(input.name || "").toLowerCase();
+    var placeholder = String(input.placeholder || "").toLowerCase();
 
-    var text = normalizeText(value);
+    if(id.includes("captcha") || id.includes("code") || id.includes("bot")){
+        return true;
+    }
 
-    if(
-        value === "" ||
-        text === "all" ||
-        text === "tat ca" ||
-        text.includes("tat ca")
-    ){
+    if(name.includes("captcha") || name.includes("code") || name.includes("bot")){
+        return true;
+    }
+
+    if(placeholder.includes("captcha") || placeholder.includes("mã") || placeholder.includes("bot")){
         return true;
     }
 
     return false;
 }
 
-function getMangaStatus(manga){
+function getRegisterFields(){
 
-    var rawStatus =
-        manga.complete_status ||
-        manga.completion_status ||
-        manga.finish_status ||
-        manga.manga_status ||
-        manga.status ||
-        "";
+    var root = getRegisterRoot();
+    var inputs = Array.from(root.querySelectorAll("input"));
 
-    var status = normalizeText(rawStatus);
+    var usernameInput = null;
+    var emailInput = null;
+    var passwordInput = null;
+    var confirmPasswordInput = null;
 
-    if(
-        status === "da hoan thanh" ||
-        status === "hoan thanh" ||
-        status === "completed" ||
-        status === "complete" ||
-        status === "done" ||
-        status === "finished"
-    ){
-        return "completed";
-    }
+    emailInput =
+        root.querySelector("#email") ||
+        root.querySelector('input[type="email"]') ||
+        root.querySelector('input[name="email"]');
 
-    return "ongoing";
-}
+    passwordInput =
+        root.querySelector("#password") ||
+        root.querySelector('input[type="password"]');
 
-function getMangaStatusText(manga){
-    return getMangaStatus(manga) === "completed" ? "Completed" : "Ongoing";
-}
+    confirmPasswordInput =
+        root.querySelector("#confirmPassword") ||
+        root.querySelector("#rePassword") ||
+        root.querySelector('input[name="confirmPassword"]') ||
+        root.querySelector('input[name="rePassword"]');
 
-function getMangaStatusClass(manga){
-    return getMangaStatus(manga) === "completed" ? "green" : "orange";
-}
+    usernameInput =
+        root.querySelector("#username") ||
+        root.querySelector("#name") ||
+        root.querySelector("#userName") ||
+        root.querySelector("#displayName") ||
+        root.querySelector('input[name="username"]') ||
+        root.querySelector('input[name="name"]');
 
-function getGenresArray(genres){
+    if(!emailInput){
+        emailInput = inputs.find(function(input){
+            var value = String(input.value || "");
+            var placeholder = String(input.placeholder || "").toLowerCase();
+            var id = String(input.id || "").toLowerCase();
+            var name = String(input.name || "").toLowerCase();
 
-    if(!genres){
-        return [];
-    }
-
-    if(Array.isArray(genres)){
-        return genres;
-    }
-
-    if(typeof genres === "string"){
-        return genres
-            .split(",")
-            .map(function(item){
-                return item.trim();
-            })
-            .filter(function(item){
-                return item !== "";
-            });
-    }
-
-    return [];
-}
-
-function renderGenres(genres){
-
-    var genreList = getGenresArray(genres);
-
-    if(genreList.length === 0){
-        return `<span class="tag gray">Không có</span>`;
-    }
-
-    return genreList.map(function(genre){
-        return `<span class="genre-tag">${genre}</span>`;
-    }).join("");
-}
-
-function openMangaDetail(id){
-    localStorage.setItem("currentMangaId", id);
-    window.location.href = "Quanlytruyenchitiet.html";
-}
-
-function sortMangaList(list){
-
-    var sort = sortSelect ? sortSelect.value : "";
-
-    if(sort === "newest"){
-        list.sort(function(a, b){
-            return Number(b.id) - Number(a.id);
+            return (
+                input.type === "email" ||
+                value.includes("@") ||
+                placeholder.includes("email") ||
+                id.includes("email") ||
+                name.includes("email")
+            );
         });
     }
-    else if(sort === "oldest"){
-        list.sort(function(a, b){
-            return Number(a.id) - Number(b.id);
-        });
-    }
-    else if(sort === "view"){
-        list.sort(function(a, b){
-            return getViewNumber(b) - getViewNumber(a);
-        });
-    }
-    else if(sort === "az"){
-        list.sort(function(a, b){
-            return (a.title || "").localeCompare(b.title || "");
-        });
-    }
-    else {
-        /*
-            Mặc định:
-            Truyện nào vừa up chap mới nhất sẽ lên đầu.
-            Nếu truyện chưa có chap thì xếp theo ngày tạo truyện.
-        */
-        list.sort(function(a, b){
 
-            var timeA = new Date(a.latest_chapter_at || a.created_at || 0).getTime();
-            var timeB = new Date(b.latest_chapter_at || b.created_at || 0).getTime();
+    if(!passwordInput){
+        passwordInput = inputs.find(function(input){
+            return input.type === "password";
+        });
+    }
 
-            if(timeB !== timeA){
-                return timeB - timeA;
+    if(!usernameInput){
+        var emailIndex = inputs.indexOf(emailInput);
+
+        usernameInput = inputs.find(function(input, index){
+            if(input === emailInput){
+                return false;
             }
 
-            return Number(b.latest_chapter_id || b.id || 0) - Number(a.latest_chapter_id || a.id || 0);
+            if(input === passwordInput){
+                return false;
+            }
+
+            if(input.type === "password"){
+                return false;
+            }
+
+            if(isCaptchaInput(input)){
+                return false;
+            }
+
+            if(emailIndex > 0 && index > emailIndex){
+                return false;
+            }
+
+            return true;
         });
     }
 
-    return list;
+    return {
+        root: root,
+        usernameInput: usernameInput,
+        emailInput: emailInput,
+        passwordInput: passwordInput,
+        confirmPasswordInput: confirmPasswordInput
+    };
 }
 
-function filterMangas(){
+/* ================== LOADING BUTTON ================== */
 
-    var keyword = searchInput ? normalizeText(searchInput.value) : "";
-    var status = statusFilter ? statusFilter.value : "";
-    var active = activeFilter ? activeFilter.value : "";
+function setRegisterLoading(isLoading){
 
-    filteredMangas = mangas.filter(function(manga){
+    var registerBtn = getRegisterButton();
 
-        var title = normalizeText(manga.title || "");
-        var author = normalizeText(manga.author || "");
-        var originalName = normalizeText(manga.original_name || "");
-
-        var genres = getGenresArray(manga.genres);
-        var genreText = normalizeText(genres.join(" "));
-
-        var matchKeyword =
-            keyword === "" ||
-            title.includes(keyword) ||
-            author.includes(keyword) ||
-            originalName.includes(keyword) ||
-            genreText.includes(keyword);
-
-        var mangaStatus = getMangaStatus(manga);
-        var normalizedFilterStatus = normalizeText(status);
-
-        var matchStatus =
-            isAllValue(status) ||
-            normalizedFilterStatus === mangaStatus ||
-            normalizedFilterStatus === normalizeText(getMangaStatusText(manga)) ||
-            normalizedFilterStatus === normalizeText(mangaStatus === "completed" ? "Đã hoàn thành" : "Đang tiến hành");
-
-        var matchActive =
-            isAllValue(active) ||
-            normalizeText(getActiveStatus(manga)) === normalizeText(active);
-
-        return matchKeyword && matchStatus && matchActive;
-    });
-
-    filteredMangas = sortMangaList(filteredMangas);
-
-    currentPage = 1;
-    renderMangas();
-}
-
-function renderMangas(){
-
-    if(totalManga){
-        totalManga.innerText = "Quản lý tất cả " + mangas.length + " truyện trên hệ thống";
+    if(!registerBtn){
+        return;
     }
 
-    if(!filteredMangas || filteredMangas.length === 0){
+    registerBtn.disabled = isLoading;
+    registerBtn.innerText = isLoading ? "Đang đăng ký..." : "Đăng ký";
+}
 
-        mangaTableBody.innerHTML = `
-            <tr>
-                <td colspan="9" style="text-align:center; padding:30px;">
-                    Không tìm thấy truyện nào
-                </td>
-            </tr>
-        `;
+/* ================== ĐĂNG KÝ ================== */
 
-        if(showingText){
-            showingText.innerText = "Showing 0 to 0 of 0 entries";
+async function handleRegister(e){
+
+    if(e){
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    if(isRegistering){
+        return;
+    }
+
+    var fields = getRegisterFields();
+
+    var username = fields.usernameInput ? fields.usernameInput.value.trim() : "";
+    var email = fields.emailInput ? fields.emailInput.value.trim().toLowerCase() : "";
+    var password = fields.passwordInput ? fields.passwordInput.value.trim() : "";
+    var confirmPassword = fields.confirmPasswordInput ? fields.confirmPasswordInput.value.trim() : "";
+
+    console.log("REGISTER ROOT:", fields.root);
+    console.log("USERNAME INPUT:", fields.usernameInput);
+    console.log("EMAIL INPUT:", fields.emailInput);
+    console.log("PASSWORD INPUT:", fields.passwordInput);
+    console.log("USERNAME VALUE:", username);
+    console.log("EMAIL VALUE:", email);
+
+    if(username === ""){
+        alert("Vui lòng nhập tên người dùng!");
+        return;
+    }
+
+    if(email === ""){
+        alert("Vui lòng nhập email!");
+        return;
+    }
+
+    if(password === ""){
+        alert("Vui lòng nhập mật khẩu!");
+        return;
+    }
+
+    if(password.length < 6){
+        alert("Mật khẩu phải có ít nhất 6 ký tự!");
+        return;
+    }
+
+    if(fields.confirmPasswordInput && confirmPassword !== password){
+        alert("Mật khẩu nhập lại không khớp!");
+        return;
+    }
+
+    if(typeof supabase === "undefined"){
+        alert("Lỗi: Chưa load supabase.js!");
+        return;
+    }
+
+    isRegistering = true;
+    setRegisterLoading(true);
+
+    try{
+        var signUpResult = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    username: username,
+                    avatar: "Image/user.svg"
+                }
+            }
+        });
+
+        if(signUpResult.error){
+            alert(getRegisterErrorMessage(signUpResult.error.message));
+            isRegistering = false;
+            setRegisterLoading(false);
+            return;
         }
 
-        if(paginationBox){
-            paginationBox.innerHTML = "";
+        var authUser = signUpResult.data ? signUpResult.data.user : null;
+
+        if(!authUser){
+            alert("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
+            window.location.href = "Loging.html";
+            return;
         }
 
-        return;
+        var role = email === ADMIN_EMAIL.toLowerCase() ? "admin" : "user";
+
+        var profile = {
+            id: authUser.id,
+            email: email,
+            username: username,
+            avatar: "Image/user.svg",
+            role: role
+        };
+
+        var profileResult = await supabase
+            .from("profiles")
+            .insert([profile]);
+
+        if(profileResult.error){
+            console.log(profileResult.error);
+
+            if(profileResult.error.code === "23505"){
+                alert("Email này đã có hồ sơ rồi, vui lòng đăng nhập!");
+            }else{
+                alert("Tài khoản đã tạo nhưng lỗi lưu hồ sơ, vui lòng đăng nhập lại!");
+            }
+
+            isRegistering = false;
+            setRegisterLoading(false);
+            return;
+        }
+
+        localStorage.setItem("currentUser", JSON.stringify(profile));
+
+        alert("Đăng ký thành công!");
+        window.location.href = "CW.html";
+
+    }catch(error){
+        console.log(error);
+        alert("Lỗi đăng ký, vui lòng thử lại!");
+
+        isRegistering = false;
+        setRegisterLoading(false);
     }
-
-    var start = (currentPage - 1) * perPage;
-    var end = start + perPage;
-
-    var pageList = filteredMangas.slice(start, end);
-
-    mangaTableBody.innerHTML = pageList.map(function(manga){
-        return `
-            <tr>
-                <td>
-                    <img src="${manga.cover || 'Image/no-image.png'}" alt="Ảnh bìa">
-                </td>
-
-                <td class="manga-name">
-                    <a href="#" onclick="openMangaDetail(${manga.id})">
-                        ${manga.title || "Không tên"}
-                    </a>
-                </td>
-
-                <td>${manga.author || "Đang cập nhật"}</td>
-
-                <td>${manga.chapter_count || 0}</td>
-
-                <td>
-                    <span class="tag ${getMangaStatusClass(manga)}">
-                        ${getMangaStatusText(manga)}
-                    </span>
-                </td>
-
-                <td>
-                    <span class="tag ${getActiveStatus(manga) === "Active" ? "green" : "gray"}">
-                        ${getActiveStatus(manga)}
-                    </span>
-                </td>
-
-                <td>
-                    ${renderGenres(manga.genres)}
-                </td>
-
-                <td>${getViewNumber(manga)}</td>
-
-                <td class="action-cell">
-                    <div class="action-buttons">
-                        <button class="edit-btn" onclick="openMangaDetail(${manga.id})">✎</button>
-                        <button class="delete-btn" onclick="deleteManga(${manga.id})">X</button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join("");
-
-    var showingStart = start + 1;
-    var showingEnd = Math.min(end, filteredMangas.length);
-
-    if(showingText){
-        showingText.innerText =
-            "Showing " + showingStart + " to " + showingEnd + " of " + filteredMangas.length + " entries";
-    }
-
-    renderPagination();
 }
 
-function renderPagination(){
+/* ================== KHỞI ĐỘNG ================== */
 
-    if(!paginationBox){
-        return;
+document.addEventListener("DOMContentLoaded", function(){
+
+    var root = getRegisterRoot();
+    var registerBtn = getRegisterButton();
+
+    if(root && root.tagName && root.tagName.toLowerCase() === "form"){
+        root.onsubmit = function(e){
+            handleRegister(e);
+        };
     }
 
-    var totalPages = Math.ceil(filteredMangas.length / perPage);
-
-    if(totalPages <= 1){
-        paginationBox.innerHTML = "";
-        return;
+    if(registerBtn){
+        registerBtn.onclick = function(e){
+            handleRegister(e);
+        };
     }
 
-    var html = "";
-
-    html += `
-        <button 
-            class="page-btn" 
-            onclick="goToPage(${currentPage - 1})" 
-            ${currentPage === 1 ? "disabled" : ""}
-        >
-            Previous
-        </button>
-    `;
-
-    for(var i = 1; i <= totalPages; i++){
-        html += `
-            <button 
-                class="page-btn ${i === currentPage ? "active" : ""}" 
-                onclick="goToPage(${i})"
-            >
-                ${i}
-            </button>
-        `;
-    }
-
-    html += `
-        <button 
-            class="page-btn" 
-            onclick="goToPage(${currentPage + 1})" 
-            ${currentPage === totalPages ? "disabled" : ""}
-        >
-            Next
-        </button>
-    `;
-
-    paginationBox.innerHTML = html;
-}
-
-function goToPage(page){
-
-    var totalPages = Math.ceil(filteredMangas.length / perPage);
-
-    if(page < 1 || page > totalPages){
-        return;
-    }
-
-    currentPage = page;
-    renderMangas();
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-}
-
-async function deleteManga(id){
-
-    var confirmDelete = confirm("Bạn có chắc muốn xóa truyện này không?");
-
-    if(!confirmDelete){
-        return;
-    }
-
-    var deleteChapters = await supabase
-        .from("chapters")
-        .delete()
-        .eq("manga_id", id);
-
-    if(deleteChapters.error){
-        alert("Lỗi xóa chapter của truyện: " + deleteChapters.error.message);
-        return;
-    }
-
-    var deleteMangaResult = await supabase
-        .from("mangas")
-        .delete()
-        .eq("id", id);
-
-    if(deleteMangaResult.error){
-        alert("Lỗi xóa truyện: " + deleteMangaResult.error.message);
-        return;
-    }
-
-    alert("Đã xóa truyện!");
-    await loadMangasFromSupabase();
-}
-
-if(searchBtn){
-    searchBtn.onclick = function(){
-        filterMangas();
-    };
-}
-
-if(searchInput){
-    searchInput.onkeyup = function(){
-        filterMangas();
-    };
-}
-
-if(statusFilter){
-    statusFilter.onchange = function(){
-        filterMangas();
-    };
-}
-
-if(activeFilter){
-    activeFilter.onchange = function(){
-        filterMangas();
-    };
-}
-
-if(sortSelect){
-    sortSelect.onchange = function(){
-        filterMangas();
-    };
-}
-
-loadMangasFromSupabase();
+});
