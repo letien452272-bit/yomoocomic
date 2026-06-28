@@ -147,7 +147,9 @@ function getFileOrder(fileName){
 }
 
 function setSaveButtonLoading(isLoading, text){
-    if(!saveChapterBtn) return;
+    if(!saveChapterBtn){
+        return;
+    }
 
     if(isLoading){
         saveChapterBtn.disabled = true;
@@ -259,6 +261,11 @@ function canvasToBlob(canvas, type, quality){
     });
 }
 
+/* ================== WATERMARK ẢNH CHAPTER ==================
+   ĐÃ XÓA LOGO GIỮA ẢNH
+   CHỈ GIỮ LOGO Ở GÓC TRÊN BÊN PHẢI
+=========================================================== */
+
 async function addWatermarkToImage(file){
 
     var img = await loadImageFromFile(file);
@@ -284,40 +291,24 @@ async function addWatermarkToImage(file){
         logo.src = "Image/LOGO WEB.png";
     });
 
-    /* LOGO GIỮA ẢNH */
+    /*
+        Logo góc trên bên phải.
+        Không còn logo mờ ở giữa ảnh nữa.
+    */
 
-    var centerLogoWidth = 250;
-    var centerLogoHeight =
-        logo.height * (centerLogoWidth / logo.width);
+    var cornerLogoWidth = Math.min(170, canvas.width * 0.2);
+    var cornerLogoHeight = logo.height * (cornerLogoWidth / logo.width);
 
-    ctx.save();
-
-    ctx.globalAlpha = 0.08;
-
-    ctx.drawImage(
-        logo,
-        (canvas.width - centerLogoWidth) / 2,
-        (canvas.height - centerLogoHeight) / 2,
-        centerLogoWidth,
-        centerLogoHeight
-    );
-
-    ctx.restore();
-
-    /* LOGO GÓC PHẢI TRÊN */
-
-    var cornerLogoWidth = 260;
-    var cornerLogoHeight =
-        logo.height * (cornerLogoWidth / logo.width);
+    var padding = Math.max(12, canvas.width * 0.018);
 
     ctx.save();
 
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.55;
 
     ctx.drawImage(
         logo,
-        canvas.width - cornerLogoWidth - 20,
-        20,
+        canvas.width - cornerLogoWidth - padding,
+        padding,
         cornerLogoWidth,
         cornerLogoHeight
     );
@@ -485,8 +476,6 @@ saveChapterBtn.onclick = async function(){
         return;
     }
 
-
-
     localStorage.removeItem("editChapterId");
     localStorage.removeItem("currentChapterId");
 
@@ -496,6 +485,7 @@ saveChapterBtn.onclick = async function(){
 };
 
 initPage();
+
 /* GIỚI HẠN PREVIEW ẢNH 3 HÀNG RỒI CUỘN */
 var fixPreviewScrollStyle = document.createElement("style");
 
