@@ -9,14 +9,53 @@ var sortSelect = document.getElementById("sortSelect");
 
 var mangas = [];
 var currentPage = 1;
-var itemsPerPage = 25;
 
 function getSupabase(){
-    return window.supabaseClient || null;
+    return window.supabaseClient || window.supabase || null;
+}
+
+function getItemsPerPage(){
+    if(window.innerWidth <= 768){
+        return 15; // mobile: 3 cột x 5 hàng
+    }
+
+    return 28; // PC: 7 cột x 4 hàng
+}
+
+function normalizeText(text){
+    return String(text || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 }
 
 function getChapterNumber(manga){
-    return Number(manga.latestChapter || 0);
+    return Number(manga.latestChapter || manga.latest_chapter || 0);
+}
+
+function getViewNumber(manga){
+    return Number(manga.views || manga.view || 0);
+}
+
+function getUpdateScore(manga){
+    return Number(manga.latestChapterId || 0);
+}
+
+function getUpdateTime(manga){
+    var time =
+        manga.latestChapterAt ||
+        manga.updated_at ||
+        manga.created_at ||
+        "";
+
+    var timeNumber = new Date(time).getTime();
+
+    if(isNaN(timeNumber)){
+        return 0;
+    }
+
+    return timeNumber;
 }
 
 function openManga(id){
@@ -40,8 +79,7 @@ async function loadMangas(){
 
     var result = await db
         .from("mangas")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
 
     if(result.error){
         console.log("Lỗi mangas:", result.error);
@@ -53,6 +91,9 @@ async function loadMangas(){
 
     await loadLatestChapters();
 
+    sortByLatestUpdate(mangas);
+
+    currentPage = 1;
     renderAllMangas();
 }
 
@@ -65,29 +106,88 @@ async function loadLatestChapters(){
 
     var result = await db
         .from("chapters")
-        .select("manga_id, number");
+        .select("id, manga_id, number, created_at")
+        .order("id", { ascending: false });
 
     if(result.error){
         console.log("Lỗi chapters:", result.error);
+
+        mangas.forEach(function(manga){
+            manga.latestChapter = Number(manga.latest_chapter || 0);
+            manga.latestChapterId = 0;
+            manga.latestChapterAt = manga.updated_at || manga.created_at || "";
+        });
+
         return;
     }
 
     var chapters = result.data || [];
+    var chapterInfo = {};
+
+    chapters.forEach(function(chapter){
+
+        var mangaId = chapter.manga_id;
+
+        if(!chapterInfo[mangaId]){
+            chapterInfo[mangaId] = {
+                latestChapter: 0,
+                latestChapterId: 0,
+                latestChapterAt: ""
+            };
+        }
+
+        var chapterNumber = Number(chapter.number) || 0;
+        var chapterId = Number(chapter.id) || 0;
+        var chapterTime = chapter.created_at || "";
+
+        if(chapterNumber > chapterInfo[mangaId].latestChapter){
+            chapterInfo[mangaId].latestChapter = chapterNumber;
+        }
+
+        /*
+            Chap nào có ID lớn hơn thì là chap mới up sau.
+            Cái này chắc hơn so với chỉ dùng số chapter.
+        */
+        if(chapterId > Number(chapterInfo[mangaId].latestChapterId || 0)){
+            chapterInfo[mangaId].latestChapterId = chapterId;
+            chapterInfo[mangaId].latestChapterAt = chapterTime;
+        }
+    });
 
     mangas.forEach(function(manga){
-        var maxChapter = 0;
 
-        chapters.forEach(function(chapter){
-            if(Number(chapter.manga_id) === Number(manga.id)){
-                var num = Number(chapter.number) || 0;
+        var info = chapterInfo[manga.id];
 
-                if(num > maxChapter){
-                    maxChapter = num;
-                }
-            }
-        });
+        if(info){
+            manga.latestChapter = info.latestChapter;
+            manga.latestChapterId = info.latestChapterId;
+            manga.latestChapterAt = info.latestChapterAt || manga.updated_at || manga.created_at || "";
+        }else{
+            manga.latestChapter = Number(manga.latest_chapter || 0);
+            manga.latestChapterId = 0;
+            manga.latestChapterAt = manga.updated_at || manga.created_at || "";
+        }
+    });
+}
 
-        manga.latestChapter = maxChapter;
+function sortByLatestUpdate(list){
+    list.sort(function(a, b){
+
+        var chapterIdB = getUpdateScore(b);
+        var chapterIdA = getUpdateScore(a);
+
+        if(chapterIdB !== chapterIdA){
+            return chapterIdB - chapterIdA;
+        }
+
+        var timeB = getUpdateTime(b);
+        var timeA = getUpdateTime(a);
+
+        if(timeB !== timeA){
+            return timeB - timeA;
+        }
+
+        return Number(b.id || 0) - Number(a.id || 0);
     });
 }
 
@@ -100,19 +200,42 @@ function getFilteredMangas(){
         });
     }
 
-    if(sortSelect){
-        if(sortSelect.value === "newest"){
-            list.sort(function(a, b){
-                return new Date(b.updated_at || b.created_at || 0) -
-                       new Date(a.updated_at || a.created_at || 0);
-            });
-        }
+    var sortValue = sortSelect ? normalizeText(sortSelect.value) : "";
 
-        if(sortSelect.value === "view"){
-            list.sort(function(a, b){
-                return Number(b.views || 0) - Number(a.views || 0);
-            });
-        }
+    if(
+        sortValue === "" ||
+        sortValue === "default" ||
+        sortValue === "mac dinh" ||
+        sortValue === "newest" ||
+        sortValue === "moi nhat"
+    ){
+        sortByLatestUpdate(list);
+    }
+
+    if(sortValue === "view"){
+        list.sort(function(a, b){
+            return getViewNumber(b) - getViewNumber(a);
+        });
+    }
+
+    if(sortValue === "az"){
+        list.sort(function(a, b){
+            return String(a.title || "").localeCompare(String(b.title || ""));
+        });
+    }
+
+    if(sortValue === "oldest"){
+        list.sort(function(a, b){
+
+            var chapterIdA = getUpdateScore(a);
+            var chapterIdB = getUpdateScore(b);
+
+            if(chapterIdA !== chapterIdB){
+                return chapterIdA - chapterIdB;
+            }
+
+            return getUpdateTime(a) - getUpdateTime(b);
+        });
     }
 
     return list;
@@ -133,6 +256,13 @@ function renderAllMangas(){
         }
 
         return;
+    }
+
+    var itemsPerPage = getItemsPerPage();
+    var totalPages = Math.ceil(list.length / itemsPerPage);
+
+    if(currentPage > totalPages){
+        currentPage = totalPages;
     }
 
     var start = (currentPage - 1) * itemsPerPage;
@@ -157,7 +287,7 @@ function renderAllMangas(){
 
                         <span class="alltr-view">
                             <img src="Image/eye.svg" alt="">
-                            ${manga.views || 0}
+                            ${getViewNumber(manga)}
                         </span>
                     </div>
                 </div>
@@ -173,6 +303,7 @@ function renderPagination(totalItems){
         return;
     }
 
+    var itemsPerPage = getItemsPerPage();
     var totalPages = Math.ceil(totalItems / itemsPerPage);
 
     if(totalPages <= 1){
@@ -214,5 +345,10 @@ if(sortSelect){
         renderAllMangas();
     };
 }
+
+window.addEventListener("resize", function(){
+    currentPage = 1;
+    renderAllMangas();
+});
 
 loadMangas();
