@@ -9,48 +9,96 @@ var activeFilter = document.getElementById("activeFilter");
 var sortSelect = document.getElementById("sortSelect");
 
 var paginationBox =
-    document.getElementById("pagination") ||
     document.querySelector(".pagination") ||
-    document.querySelector(".dataTables_paginate") ||
-    document.querySelector(".table-pagination");
+    document.getElementById("pagination");
+
 var mangas = [];
 var filteredMangas = [];
 
 var currentPage = 1;
 var perPage = 10;
 
+function getDB(){
+    if(window.supabaseClient){
+        return window.supabaseClient;
+    }
+
+    if(window.db){
+        return window.db;
+    }
+
+    /*
+        Tránh lấy nhầm thư viện Supabase CDN.
+        Thư viện CDN có window.supabase.createClient,
+        còn client thật mới có .from()
+    */
+    if(window.supabase && typeof window.supabase.from === "function"){
+        return window.supabase;
+    }
+
+    return null;
+}
+
+function showTableMessage(message){
+    if(mangaTableBody){
+        mangaTableBody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align:center; padding:30px;">
+                    ${message}
+                </td>
+            </tr>
+        `;
+    }
+
+    if(showingText){
+        showingText.innerText = "Showing 0 to 0 of 0 entries";
+    }
+}
+
 async function loadMangasFromSupabase(){
 
-    var mangaResult = await supabase
+    var db = getDB();
+
+    console.log("DB CLIENT:", db);
+
+    if(!db){
+        showTableMessage("Lỗi: Không tìm thấy Supabase client. Kiểm tra supabase.js.");
+        if(totalManga){
+            totalManga.innerText = "Quản lý tất cả 0 truyện trên hệ thống";
+        }
+        return;
+    }
+
+    showTableMessage("Đang tải danh sách truyện...");
+
+    var mangaResult = await db
         .from("mangas")
         .select("*")
         .order("id", { ascending: false });
 
+    console.log("MANGA RESULT:", mangaResult);
+
     if(mangaResult.error){
-        console.log(mangaResult.error);
-        alert("Lỗi tải danh sách truyện: " + mangaResult.error.message);
+        showTableMessage("Lỗi tải truyện: " + mangaResult.error.message);
+        console.log("Lỗi tải mangas:", mangaResult.error);
         return;
     }
 
     var mangaList = mangaResult.data || [];
 
-    var chapterResult = await supabase
+    var chapterResult = await db
         .from("chapters")
-        .select("id, manga_id, created_at")
+        .select("id, manga_id, number, created_at")
         .order("id", { ascending: false });
+
+    console.log("CHAPTER RESULT:", chapterResult);
 
     var chapterList = [];
 
     if(chapterResult.error){
-        console.log("Lỗi tải chapter:", chapterResult.error);
-
-        /*
-            Nếu bảng chapters lỗi quyền RLS hoặc thiếu cột,
-            vẫn cho hiện danh sách truyện, chỉ để số chương = 0.
-        */
+        console.log("Lỗi tải chapters:", chapterResult.error);
         chapterList = [];
-    }
-    else {
+    }else{
         chapterList = chapterResult.data || [];
     }
 
@@ -71,16 +119,15 @@ async function loadMangasFromSupabase(){
         chapterInfo[mangaId].count++;
 
         var chapTime = chap.created_at || "";
+        var oldTime = new Date(chapterInfo[mangaId].latestChapterAt || 0).getTime();
+        var newTime = new Date(chapTime || 0).getTime();
 
         if(
             !chapterInfo[mangaId].latestChapterAt ||
-            new Date(chapTime).getTime() > new Date(chapterInfo[mangaId].latestChapterAt).getTime()
+            newTime > oldTime ||
+            Number(chap.id) > Number(chapterInfo[mangaId].latestChapterId || 0)
         ){
             chapterInfo[mangaId].latestChapterAt = chapTime;
-            chapterInfo[mangaId].latestChapterId = chap.id;
-        }
-
-        if(Number(chap.id) > Number(chapterInfo[mangaId].latestChapterId || 0)){
             chapterInfo[mangaId].latestChapterId = chap.id;
         }
     });
@@ -99,6 +146,8 @@ async function loadMangasFromSupabase(){
 
         return manga;
     });
+
+    console.log("MANGAS FINAL:", mangas);
 
     filterMangas();
 }
@@ -129,19 +178,14 @@ function normalizeText(text){
 }
 
 function isAllValue(value){
-
     var text = normalizeText(value);
 
-    if(
+    return (
         value === "" ||
         text === "all" ||
         text === "tat ca" ||
         text.includes("tat ca")
-    ){
-        return true;
-    }
-
-    return false;
+    );
 }
 
 function getMangaStatus(manga){
@@ -189,6 +233,13 @@ function getGenresArray(genres){
     }
 
     if(typeof genres === "string"){
+        try{
+            var parsed = JSON.parse(genres);
+            if(Array.isArray(parsed)){
+                return parsed;
+            }
+        }catch(e){}
+
         return genres
             .split(",")
             .map(function(item){
@@ -241,19 +292,14 @@ function sortMangaList(list){
     }
     else if(sort === "az"){
         list.sort(function(a, b){
-            return (a.title || "").localeCompare(b.title || "");
+            return String(a.title || "").localeCompare(String(b.title || ""));
         });
     }
     else {
-        /*
-            Mặc định:
-            Truyện nào vừa up chap mới nhất sẽ lên đầu.
-            Nếu truyện chưa có chap thì xếp theo ngày tạo truyện.
-        */
         list.sort(function(a, b){
 
-            var timeA = new Date(a.latest_chapter_at || a.created_at || 0).getTime();
-            var timeB = new Date(b.latest_chapter_at || b.created_at || 0).getTime();
+            var timeA = new Date(a.latest_chapter_at || a.updated_at || a.created_at || 0).getTime();
+            var timeB = new Date(b.latest_chapter_at || b.updated_at || b.created_at || 0).getTime();
 
             if(timeB !== timeA){
                 return timeB - timeA;
@@ -317,18 +363,7 @@ function renderMangas(){
     }
 
     if(!filteredMangas || filteredMangas.length === 0){
-
-        mangaTableBody.innerHTML = `
-            <tr>
-                <td colspan="9" style="text-align:center; padding:30px;">
-                    Không tìm thấy truyện nào
-                </td>
-            </tr>
-        `;
-
-        if(showingText){
-            showingText.innerText = "Showing 0 to 0 of 0 entries";
-        }
+        showTableMessage("Không tìm thấy truyện nào");
 
         if(paginationBox){
             paginationBox.innerHTML = "";
@@ -414,34 +449,23 @@ function renderPagination(){
     var html = "";
 
     html += `
-        <button 
-            class="page-btn" 
-            onclick="goToPage(${currentPage - 1})" 
-            ${currentPage === 1 ? "disabled" : ""}
-        >
+        <a href="#" onclick="goToPage(${currentPage - 1}); return false;" class="${currentPage === 1 ? "disabled" : ""}">
             Previous
-        </button>
+        </a>
     `;
 
     for(var i = 1; i <= totalPages; i++){
         html += `
-            <button 
-                class="page-btn ${i === currentPage ? "active" : ""}" 
-                onclick="goToPage(${i})"
-            >
+            <a href="#" onclick="goToPage(${i}); return false;" class="${i === currentPage ? "active" : ""}">
                 ${i}
-            </button>
+            </a>
         `;
     }
 
     html += `
-        <button 
-            class="page-btn" 
-            onclick="goToPage(${currentPage + 1})" 
-            ${currentPage === totalPages ? "disabled" : ""}
-        >
+        <a href="#" onclick="goToPage(${currentPage + 1}); return false;" class="${currentPage === totalPages ? "disabled" : ""}">
             Next
-        </button>
+        </a>
     `;
 
     paginationBox.innerHTML = html;
@@ -457,11 +481,7 @@ function goToPage(page){
 
     currentPage = page;
     renderMangas();
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    window.scrollTo(0, 0);
 }
 
 async function deleteManga(id){
@@ -472,7 +492,14 @@ async function deleteManga(id){
         return;
     }
 
-    var deleteChapters = await supabase
+    var db = getDB();
+
+    if(!db){
+        alert("Lỗi: Không tìm thấy Supabase client.");
+        return;
+    }
+
+    var deleteChapters = await db
         .from("chapters")
         .delete()
         .eq("manga_id", id);
@@ -482,7 +509,7 @@ async function deleteManga(id){
         return;
     }
 
-    var deleteMangaResult = await supabase
+    var deleteMangaResult = await db
         .from("mangas")
         .delete()
         .eq("id", id);
