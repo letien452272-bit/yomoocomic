@@ -1146,3 +1146,150 @@ body{
         line-height:34px !important;
     }
 }
+#allTrComicList{
+    width:100% !important;
+    max-width:100% !important;
+
+    display:grid !important;
+    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap:20px !important;
+
+    align-items:start !important;
+}
+
+.alltr-comic{
+    width:100% !important;
+    min-width:0 !important;
+}
+
+.alltr-cover{
+    width:100% !important;
+    height:220px !important;
+    overflow:hidden !important;
+}
+
+.alltr-cover img{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+    display:block !important;
+}
+
+@media(min-width:1200px){
+    #allTrComicList{
+        grid-template-columns:repeat(auto-fill, minmax(155px, 1fr)) !important;
+        gap:22px !important;
+    }
+
+    .alltr-cover{
+        height:230px !important;
+    }
+}
+
+@media(max-width:768px){
+    #allTrComicList{
+        grid-template-columns:repeat(3, 1fr) !important;
+        gap:10px !important;
+    }
+
+    .alltr-cover{
+        height:145px !important;
+    }
+
+    .alltr-info h3{
+        font-size:12px !important;
+        line-height:15px !important;
+        min-height:30px !important;
+    }
+
+    .alltr-chapter,
+    .alltr-view{
+        font-size:11px !important;
+    }
+}/* ===== FIX RIÊNG PC ALLTR: 7 BÌA NGANG x 4 HÀNG ===== */
+@media(min-width:769px){
+
+    .category-page{
+        width:100% !important;
+        max-width:1280px !important;
+        margin:40px auto !important;
+        padding:0 30px !important;
+        box-sizing:border-box !important;
+    }
+
+    #allTrComicList,
+    #allTrComicList.alltr-grid{
+        width:100% !important;
+        max-width:1170px !important;
+
+        display:grid !important;
+        grid-template-columns:repeat(7, 150px) !important;
+        gap:18px !important;
+
+        justify-content:center !important;
+        align-items:start !important;
+
+        margin:25px auto 0 !important;
+        padding:0 !important;
+        box-sizing:border-box !important;
+    }
+
+    #allTrComicList .alltr-comic,
+    #allTrComicList.alltr-grid .alltr-comic{
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        height:300px !important;
+
+        background:#253247 !important;
+        border-radius:8px !important;
+        overflow:hidden !important;
+        cursor:pointer !important;
+    }
+
+    #allTrComicList .alltr-cover,
+    #allTrComicList.alltr-grid .alltr-cover{
+        width:150px !important;
+        height:220px !important;
+        overflow:hidden !important;
+    }
+
+    #allTrComicList .alltr-cover img,
+    #allTrComicList.alltr-grid .alltr-cover img{
+        width:150px !important;
+        height:220px !important;
+        object-fit:cover !important;
+        display:block !important;
+    }
+
+    #allTrComicList .alltr-info{
+        height:80px !important;
+        padding:8px !important;
+        box-sizing:border-box !important;
+    }
+
+    #allTrComicList .alltr-info h3{
+        color:#fff !important;
+        font-size:14px !important;
+        line-height:1.25 !important;
+        height:35px !important;
+        margin:0 0 6px 0 !important;
+
+        overflow:hidden !important;
+        white-space:nowrap !important;
+        text-overflow:ellipsis !important;
+        text-align:left !important;
+    }
+
+    #allTrComicList .alltr-bottom{
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        font-size:12px !important;
+    }
+
+    #allTrComicList .alltr-view img{
+        width:12px !important;
+        height:12px !important;
+    }
+}
