@@ -67,8 +67,7 @@ async function loadDataFromSupabase(){
 
     var chapterResult = await supabase
         .from("chapters")
-        .select("id,manga_id,number,title,created_at")
-        .order("number", { ascending:false });
+        .select("*");
 
     if(chapterResult.error){
         console.log(chapterResult.error);
@@ -80,22 +79,36 @@ async function loadDataFromSupabase(){
 
     mangas = (mangaResult.data || []).map(function(manga){
         var mangaChapters = chapters.filter(function(chapter){
-            return Number(chapter.manga_id) === Number(manga.id);
+            return String(chapter.manga_id) === String(manga.id);
+        });
+
+        mangaChapters.sort(function(a, b){
+            var timeA = new Date(a.created_at || 0).getTime() || 0;
+            var timeB = new Date(b.created_at || 0).getTime() || 0;
+
+            if(timeA !== timeB){
+                return timeB - timeA;
+            }
+
+            return Number(b.number || 0) - Number(a.number || 0);
         });
 
         manga.chapters = mangaChapters;
 
         if(mangaChapters.length > 0){
             manga.releaseStatus = "released";
+
             manga.latestChapter = Math.max.apply(null, mangaChapters.map(function(chapter){
                 return Number(chapter.number) || 0;
             }));
 
-            manga.updatedAt = mangaChapters[0].created_at || manga.created_at;
+            manga.latestChapterCreatedAt = mangaChapters[0].created_at || "";
+            manga.updatedAt = manga.updated_at || manga.latestChapterCreatedAt || manga.created_at;
         }else{
             manga.releaseStatus = "upcoming";
-            manga.latestChapter = 0;
-            manga.updatedAt = manga.created_at;
+            manga.latestChapter = Number(manga.latestChapter || manga.latest_chapter || 0);
+            manga.latestChapterCreatedAt = "";
+            manga.updatedAt = manga.updated_at || manga.created_at;
         }
 
         return manga;
@@ -107,7 +120,6 @@ async function loadDataFromSupabase(){
     renderHistory();
     setupBanner();
 }
-
 function getChapterNumber(manga){
     if(manga.chapters && manga.chapters.length > 0){
         var maxChapter = 0;
@@ -123,9 +135,8 @@ function getChapterNumber(manga){
         return maxChapter;
     }
 
-    return Number(manga.latestChapter || 0);
+    return Number(manga.latestChapter || manga.latest_chapter || 0);
 }
-
 function getViewNumber(manga){
     return Number(manga.views || manga.view || 0);
 }
@@ -183,12 +194,28 @@ function renderUpdatedMangas(){
     });
 
     releasedMangas.sort(function(a, b){
-        return new Date(b.updatedAt || b.created_at || 0)
-             - new Date(a.updatedAt || a.created_at || 0);
+        var timeA = new Date(a.updatedAt || a.updated_at || a.latestChapterCreatedAt || a.created_at || 0).getTime() || 0;
+        var timeB = new Date(b.updatedAt || b.updated_at || b.latestChapterCreatedAt || b.created_at || 0).getTime() || 0;
+
+        return timeB - timeA;
     });
 
     var limitUpdatedMangas = window.innerWidth <= 768 ? 9 : 14;
     var displayMangas = releasedMangas.slice(0, limitUpdatedMangas);
+
+    if(displayMangas.length === 0){
+        comicList.innerHTML = `
+            <p style="color:white;text-align:center;width:100%;grid-column:1/-1;">
+                Chưa có truyện mới cập nhật
+            </p>
+
+            <a href="alltr.html" class="new-comic-card new-more-card">
+                <div class="more-icon">›</div>
+                <p>Xem thêm</p>
+            </a>
+        `;
+        return;
+    }
 
     displayMangas.forEach(function(manga){
         var comic = document.createElement("a");
@@ -196,7 +223,7 @@ function renderUpdatedMangas(){
         comic.className = "new-comic-card";
         comic.href = "TD.html?id=" + manga.id;
 
-        var timeText = getTimeAgo(manga.updatedAt || manga.created_at) || "NEW";
+        var timeText = getTimeAgo(manga.updatedAt || manga.updated_at || manga.latestChapterCreatedAt || manga.created_at) || "NEW";
 
         comic.innerHTML = `
             <div class="new-comic-cover">
