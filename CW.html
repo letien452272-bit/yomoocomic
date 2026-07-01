@@ -62,7 +62,7 @@
                                 <a href="TheLoai.html?genre=Hiện Đại">Hiện Đại</a>
                                 <a href="TheLoai.html?genre=Chuyển Sinh">Chuyển Sinh</a>
                                 <a href="TheLoai.html?genre=Manhwa">Manhwa</a>
-						     <a href="TheLoai.html?genre=Manga">Manga</a>
+								<a href="TheLoai.html?genre=Manga">Manga</a>
                                 <a href="TheLoai.html?genre=Romance">Romance</a>
                                 <a href="TheLoai.html?genre=Học Đường">Học Đường</a>
                                 <a href="TheLoai.html?genre=Action">Action</a>
@@ -233,16 +233,27 @@
 
     </div>
 
-    <div class="footer">
-        <p>Copyright &copy; by Lion Team</p>
-        <p>Link: https://www.facebook.com/nhomslion</p>
-    </div>
+    <footer id="yomooFooter">
+		<div class="yomoo-footer-inner">
+
+			<div class="yomoo-footer-left">
+				<div>Copyright © by Lion Team</div>
+				<div>Link: https://www.facebook.com/nhomslion</div>
+			</div>
+
+			<div class="yomoo-footer-right">
+				<div>Tổng view: <span id="totalViewCount">0</span></div>
+				<div> Đang online: <span id="onlineUserCount">0</span></div>
+			</div>
+
+		</div>
+	</footer>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
-
+<script src="footer.js"></script>
 <script src="auth.js"></script>
 <script src="menu.js"></script>
 <script src="search.js"></script>
