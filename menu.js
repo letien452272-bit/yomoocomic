@@ -144,9 +144,7 @@ async function forceUpdateMobileUserMenu(){
     var avatar = user.avatar || "Image/user.svg";
     var name = user.username || user.name || user.email || "Người dùng";
 
-    if(user.email && user.email.toLowerCase() === "letien.452272@gmail.com"){
-        name = "Admin";
-    }
+    
 
     userBtn.innerHTML = `
         <img src="${avatar}" alt="">
