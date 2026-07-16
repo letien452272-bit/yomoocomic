@@ -1,6 +1,3 @@
-function isAdminEmail(email){
-    return String(email || "").toLowerCase() === "letien.452272@gmail.com";
-}
 
 function getCommentDisplayName(user){
     if(!user){
