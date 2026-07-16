@@ -1,7 +1,7 @@
 var mangaId = Number(localStorage.getItem("currentMangaId"));
 var editChapterId = localStorage.getItem("editChapterId");
 
-var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev/upload";
+const R2_UPLOAD_URL = atob("aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2");
 
 if(!mangaId){
     alert("Không tìm thấy ID truyện!");
