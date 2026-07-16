@@ -1,5 +1,10 @@
-var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
-var R2_PUBLIC_URL = "https://pub-feac672c19c646b4b97ff6a2ac5ce733.r2.dev";
+const R2_UPLOAD_URL = atob(
+  "aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2"
+);
+
+const R2_PUBLIC_URL = atob(
+  "aHR0cHM6Ly9wdWItZmVhYzY3MmMxOWM2NDZiNGI5N2ZmNmEyYWM1Y2U3MzMucjIuZGV2"
+);
 
 var currentSupabaseUser = null;
 
