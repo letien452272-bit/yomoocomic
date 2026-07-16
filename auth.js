@@ -1,7 +1,5 @@
 var DEFAULT_AVATAR = "Image/user.svg";
-var ADMIN_EMAIL = "letien.452272@gmail.com";
-
-var R2_UPLOAD_URL = "https://dark-snow-9711.letien-452272.workers.dev";
+const R2_UPLOAD_URL = atob("aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2");
 
 /* ================== ADMIN NAME RULE ================== */
 
@@ -12,10 +10,9 @@ function normalizeName(name){
         .replace(/\s+/g, "");
 }
 
-function isAdminEmail(email){
-    return String(email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+function isAdminEmail(){
+    return false;
 }
-
 function isBlockedAdminName(name){
     var cleanName = normalizeName(name);
 
@@ -115,22 +112,32 @@ async function getCurrentUser(){
     }
 
     var user = result.data.user;
-    var email = user.email || "";
-    var role = isAdminEmail(email) ? "admin" : "user";
 
-    var username = isAdminEmail(email)
-        ? "Admin"
-        : (
-            user.user_metadata?.username ||
-            user.user_metadata?.name ||
-            email
-        );
+    var role = "user";
+
+    try{
+        var profile = await db
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+        if(profile.data){
+            role = profile.data.role || "user";
+        }
+    }catch(e){}
 
     return {
         id: user.id,
-        email: email,
-        username: username,
-        name: username,
+        email: user.email,
+        username:
+            user.user_metadata?.username ||
+            user.user_metadata?.name ||
+            user.email,
+        name:
+            user.user_metadata?.username ||
+            user.user_metadata?.name ||
+            user.email,
         avatar:
             user.user_metadata?.avatar ||
             user.user_metadata?.avatar_url ||
@@ -159,14 +166,14 @@ async function registerUser(username, email, password){
         return false;
     }
 
-    if(!isAdminEmail(email) && isBlockedAdminName(username)){
+    if(isBlockedAdminName(username)){
         alert("Tên này không được phép sử dụng.");
         return false;
     }
 
     username = getSafeUsername(username, email);
 
-    var role = isAdminEmail(email) ? "admin" : "user";
+    var role = "user";
 
     var result = await db.auth.signUp({
         email: email,
@@ -270,13 +277,23 @@ async function requireLogin(){
 }
 
 async function isAdmin(){
-    var user = await getCurrentUser();
+    const db = await waitForSupabase();
 
-    if(!user){
+    const user = await getCurrentUser();
+
+    if(!user) return false;
+
+    const { data, error } = await db
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+    if(error || !data){
         return false;
     }
 
-    return isAdminEmail(user.email);
+    return data.role === "admin";
 }
 
 async function requireAdmin(){
@@ -393,9 +410,9 @@ async function updateUser(userUpdate){
     var newUsername = userUpdate.username || user.username;
     var newAvatar = userUpdate.avatar || user.avatar;
 
-    if(isAdminEmail(user.email)){
-        newUsername = "Admin";
-    }else{
+    if(user.role === "admin"){
+    newUsername = "Admin";
+}else{
         if(isBlockedAdminName(newUsername)){
             alert("Tên này không được phép sử dụng.");
             return;
