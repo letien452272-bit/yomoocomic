@@ -1,5 +1,4 @@
-const R2_WORKER_URL = "https://dark-snow-9711.letien-452272.workers.dev";
-
+const R2_UPLOAD_URL = atob("aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2");
 async function uploadFileToR2(file, options){
 
     var formData = new FormData();
