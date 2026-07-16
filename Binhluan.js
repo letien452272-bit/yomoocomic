@@ -1,4 +1,3 @@
-var ADMIN_EMAIL = "letien.452272@gmail.com";
 
 var commentList = document.getElementById("commentList");
 var emptyText = document.getElementById("emptyText");
