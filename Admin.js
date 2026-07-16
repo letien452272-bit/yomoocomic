@@ -1,4 +1,3 @@
-var ADMIN_EMAIL = "letien.452272@gmail.com";
 
 var mangaBtn = document.getElementById("mangaBtn");
 var mangaMenu = document.getElementById("mangaMenu");
@@ -59,55 +58,45 @@ async function loadAdminInfo(){
 
     console.log("ADMIN user:", user.email);
 
-    if(String(user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
-        console.log("LỖI ADMIN: Email hiện tại không phải admin:", user.email);
-        alert("Bạn không có quyền vào admin!");
-        window.location.href = "CW.html";
-        return;
-    }
+    var profileResult = await db
+    .from("profiles")
+    .select("role, avatar")
+    .eq("id", user.id)
+    .maybeSingle();
+
+console.log("ADMIN profileResult:", profileResult);
+
+
+if(
+    profileResult.error ||
+    !profileResult.data ||
+    profileResult.data.role !== "admin"
+){
+    alert("Bạn không có quyền vào Admin!");
+    window.location.href = "CW.html";
+    return;
+}
 
     if(adminName){
-        adminName.textContent =
-            user.user_metadata?.username ||
-            user.user_metadata?.name ||
-            user.email;
-    }
+    adminName.textContent = "Admin";
+}
 
     if(adminRole){
         adminRole.textContent = "Admin";
     }
 
     if(adminAvatar){
-        adminAvatar.src = "Image/user.svg";
-
-        var avatarUrl =
-            user.user_metadata?.avatar ||
-            user.user_metadata?.avatar_url;
-
-        try{
-            var profileResult = await db
-    .from("profiles")
-    .select("avatar")
-    .eq("id", user.id)
-    .maybeSingle();
-
-console.log("ADMIN profileResult:", profileResult);
-
-if(profileResult.data && profileResult.data.avatar){
-    avatarUrl = profileResult.data.avatar;
-}
-        }catch(error){
-            console.log("Không đọc được bảng profiles:", error);
-        }
-
-        if(avatarUrl){
-            adminAvatar.src = avatarUrl;
-        }
-    }
+    adminAvatar.src =
+        profileResult.data?.avatar ||
+        user.user_metadata?.avatar ||
+        user.user_metadata?.avatar_url ||
+        "Image/user.svg";
 }
 
+}
+	
 loadAdminInfo();
-
+	
 var themTruyenBtn = document.getElementById("themTruyenBtn");
 var danhSachBtn = document.getElementById("danhSachBtn");
 var xoaTruyenBtn = document.getElementById("xoaTruyenBtn");
