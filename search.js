@@ -1,4 +1,3 @@
-var ADMIN_EMAIL = "letien.452272@gmail.com";
 
 var emailInput = document.getElementById("email");
 var passwordInput = document.getElementById("password");
