@@ -86,19 +86,16 @@ async function loadAdminInfo(){
 
         try{
             var profileResult = await db
-                .from("profiles")
-                .select("avatar, avatar_url")
-                .eq("id", user.id)
-                .maybeSingle();
+    .from("profiles")
+    .select("avatar")
+    .eq("id", user.id)
+    .maybeSingle();
 
-            console.log("ADMIN profileResult:", profileResult);
+console.log("ADMIN profileResult:", profileResult);
 
-            if(profileResult.data){
-                avatarUrl =
-                    profileResult.data.avatar ||
-                    profileResult.data.avatar_url ||
-                    avatarUrl;
-            }
+if(profileResult.data && profileResult.data.avatar){
+    avatarUrl = profileResult.data.avatar;
+}
         }catch(error){
             console.log("Không đọc được bảng profiles:", error);
         }
