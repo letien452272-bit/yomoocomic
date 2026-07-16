@@ -28,8 +28,6 @@ var mangas = [];
 var commentPage = 1;
 var commentsPerPage = 8;
 
-var ADMIN_EMAIL = "letien.452272@gmail.com";
-
 function isAdminEmail(email){
     return String(email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
 }
