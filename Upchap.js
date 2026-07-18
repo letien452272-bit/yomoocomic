@@ -341,10 +341,21 @@ async function uploadFileToR2(file, options){
     formData.append("mangaId", options.mangaId);
     formData.append("chapterNumber", options.chapterNumber);
 
-    var response = await fetch(R2_UPLOAD_URL, {
-        method: "POST",
-        body: formData
-    });
+    const {
+    data: { session }
+} = await supabase.auth.getSession();
+
+if (!session) {
+    throw new Error("Bạn chưa đăng nhập.");
+}
+
+var response = await fetch(R2_UPLOAD_URL, {
+    method: "POST",
+    headers: {
+        Authorization: `Bearer ${session.access_token}`
+    },
+    body: formData
+});
 
     if(!response.ok){
         var errorText = await response.text();
