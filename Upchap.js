@@ -1,8 +1,6 @@
 var mangaId = Number(localStorage.getItem("currentMangaId"));
 var editChapterId = localStorage.getItem("editChapterId");
 
-const R2_UPLOAD_URL = atob("aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2");
-
 if(!mangaId){
     alert("Không tìm thấy ID truyện!");
     window.location.href = "Danhsach.html";
