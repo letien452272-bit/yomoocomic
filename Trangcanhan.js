@@ -1,8 +1,8 @@
-const R2_UPLOAD_URL = atob(
+window.R2_UPLOAD_URL = window.R2_UPLOAD_URL || atob(
   "aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2"
 );
 
-const R2_PUBLIC_URL = atob(
+window.R2_PUBLIC_URL = window.R2_PUBLIC_URL || atob(
   "aHR0cHM6Ly9wdWItZmVhYzY3MmMxOWM2NDZiNGI5N2ZmNmEyYWM1Y2U3MzMucjIuZGV2"
 );
 
@@ -210,7 +210,7 @@ async function uploadAvatarToR2(file){
     formData.append("type", "cover");
     formData.append("userEmail", currentSupabaseUser.email);
 
-    var response = await fetch(R2_UPLOAD_URL, {
+    var response = await fetch(window.R2_UPLOAD_URL, {
         method: "POST",
         body: formData
     });
