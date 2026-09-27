@@ -854,4 +854,105 @@ body{
         display:flex !important;
     }
 
+}/* ==============================
+   AIDZAP
+   PC: 728x90
+   MOBILE: 320x100
+   ============================== */
+
+.aidzap-ad{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:20px auto;
+    overflow:hidden;
+    box-sizing:border-box;
+}
+
+.aidzap-ad iframe{
+    display:block;
+    border:none;
+    margin:0;
+    padding:0;
+}
+
+/* PC */
+@media screen and (min-width:769px){
+
+    .aidzap-ad{
+        min-height:90px;
+    }
+
+    .aidzap-ad iframe{
+        width:728px;
+        height:90px;
+    }
+}
+
+/* MOBILE */
+@media screen and (max-width:768px){
+
+    .aidzap-ad{
+        min-height:100px;
+        width:100%;
+    }
+
+    .aidzap-ad iframe{
+        width:320px;
+        height:100px;
+        max-width:100%;
+    }
+}
+
+/* AIDZAP 728x90 */
+
+#aidzap1{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:20px auto;
+    overflow:hidden;
+}
+
+#aidzap1 iframe{
+    display:block;
+    width:728px;
+    height:90px;
+    border:none;
+}
+
+
+/* AIDZAP 320x100 */
+
+#aidzap2{
+    display:none;
+    width:100%;
+    justify-content:center;
+    align-items:center;
+    margin:15px auto;
+    overflow:hidden;
+}
+
+#aidzap2 iframe{
+    display:block;
+    width:320px;
+    height:100px;
+    border:none;
+}
+
+
+/* MOBILE */
+
+@media screen and (max-width:768px){
+
+    #aidzap1{
+        display:none !important;
+    }
+
+    #aidzap2{
+        display:flex !important;
+    }
+
 }
