@@ -1,3 +1,6 @@
+function isAdminEmail(email){
+    return String(email || "").toLowerCase() === "letien.452272@gmail.com";
+}
 
 function getCommentDisplayName(user){
     if(!user){
@@ -259,12 +262,36 @@ function createChapterImageWrap(src, alt, extraClass){
     return wrap;
 }
 
+function createAidzapAd(){
+
+    var wrap = document.createElement("div");
+
+    wrap.className = "reader-aidzap";
+
+    var iframe = document.createElement("iframe");
+
+    iframe.src = "https://aidzap.com/ad/20e222d7-80ea-450f-bf76-c03163964e79";
+    iframe.width = "300";
+    iframe.height = "250";
+    iframe.scrolling = "no";
+    iframe.frameBorder = "0";
+    iframe.style.border = "none";
+
+    wrap.appendChild(iframe);
+
+    return wrap;
+}
+
 function renderChapter(){
+
     var chapterTitle = document.getElementById("chapterTitle");
     var chapterImages = document.getElementById("chapterImages");
 
     if(chapterTitle){
-        chapterTitle.textContent = (manga.title || "Không tên") + " - Chapter " + (chapter.number || "");
+        chapterTitle.textContent =
+            (manga.title || "Không tên") +
+            " - Chapter " +
+            (chapter.number || "");
     }
 
     if(!chapterImages){
@@ -273,9 +300,12 @@ function renderChapter(){
 
     chapterImages.innerHTML = "";
 
-    var images = Array.isArray(chapter.images) ? chapter.images : [];
+    var images = Array.isArray(chapter.images)
+        ? chapter.images
+        : [];
 
     images = images.filter(function(img){
+
         var url = getImageUrl(img);
 
         if(!url){
@@ -286,19 +316,29 @@ function renderChapter(){
     });
 
     if(images.length === 0){
-        chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
+
+        chapterImages.innerHTML =
+            "<p>Chương này chưa có ảnh.</p>";
+
         return;
     }
 
-    var topBanner = createChapterImageWrap(
-        "Image/7.png",
-        "YOMOO đầu truyện",
-        "chapter-auto-banner"
+
+    /* =========================
+       QC 1 - ĐẦU TRUYỆN
+       ========================= */
+
+    chapterImages.appendChild(
+        createAidzapAd()
     );
 
-    chapterImages.appendChild(topBanner);
 
-    images.forEach(function(img){
+    /* =========================
+       ẢNH TRUYỆN
+       ========================= */
+
+    images.forEach(function(img, index){
+
         var imageUrl = getImageUrl(img);
 
         if(!imageUrl){
@@ -312,21 +352,63 @@ function renderChapter(){
         );
 
         chapterImages.appendChild(wrap);
+
+
+        /* =========================
+           QC 2 - SAU ẢNH 3
+           ========================= */
+
+        if(index === 2){
+
+            chapterImages.appendChild(
+                createAidzapAd()
+            );
+
+        }
+
+
+        /* =========================
+           QC 3 - GIỮA TRUYỆN
+           ========================= */
+
+        var middleIndex =
+            Math.floor(images.length / 2) - 1;
+
+        if(
+            index === middleIndex &&
+            index !== 2
+        ){
+
+            chapterImages.appendChild(
+                createAidzapAd()
+            );
+
+        }
+
     });
 
-    var bottomBanner = createChapterImageWrap(
-        "Image/8.png",
-        "YOMOO cuối truyện",
-        "chapter-auto-banner"
+
+    /* =========================
+       QC 4 - CUỐI TRUYỆN
+       ========================= */
+
+    chapterImages.appendChild(
+        createAidzapAd()
     );
 
-    chapterImages.appendChild(bottomBanner);
+
+    /* =========================
+       KIỂM TRA
+       ========================= */
 
     if(chapterImages.innerHTML.trim() === ""){
-        chapterImages.innerHTML = "<p>Chương này chưa có ảnh.</p>";
-    }
-}
 
+        chapterImages.innerHTML =
+            "<p>Chương này chưa có ảnh.</p>";
+
+    }
+
+}
 function setupChapterButtons(){
 
     var prevChapter = document.getElementById("prevChapter");
