@@ -1612,3 +1612,67 @@ function goCommentPage(page){
    ========================================================= */
 
 loadMangaDetail();
+
+
+/* ==============================
+   AIDZAP - CHỈ LOAD 1 QUẢNG CÁO
+   PC: 728x90
+   MOBILE: 320x100
+   ============================== */
+
+function loadAidZapAd(){
+
+    var adBox = document.getElementById("aidzapAd");
+
+    if(!adBox){
+        console.log("Không tìm thấy #aidzapAd");
+        return;
+    }
+
+    /* Xóa toàn bộ quảng cáo cũ */
+    adBox.innerHTML = "";
+
+    var isMobile = window.innerWidth <= 768;
+
+    var adUrl;
+
+    if(isMobile){
+
+        /* MOBILE 320x100 */
+        adUrl = "https://aidzap.com/ad/04bb2a35-75fa-4874-9efb-7ebdef081d85";
+
+    }else{
+
+        /* PC 728x90 */
+        adUrl = "https://aidzap.com/ad/ae67fa96-b7fb-44ec-96cf-ccb3c998df9b";
+
+    }
+
+    var iframe = document.createElement("iframe");
+
+    iframe.src = adUrl;
+
+    iframe.width = isMobile ? "320" : "728";
+    iframe.height = isMobile ? "100" : "90";
+
+    iframe.setAttribute("scrolling", "no");
+    iframe.setAttribute("frameborder", "0");
+    iframe.setAttribute("loading", "lazy");
+    iframe.style.border = "none";
+    iframe.style.display = "block";
+
+    adBox.appendChild(iframe);
+
+    console.log(
+        "AidZap loaded:",
+        isMobile ? "MOBILE 320x100" : "PC 728x90"
+    );
+}
+
+
+/* Chạy sau khi trang tải */
+window.addEventListener("load", function(){
+
+    loadAidZapAd();
+
+});
