@@ -9,27 +9,20 @@
 <link rel="stylesheet" href="notify.css">
 <link rel="stylesheet" href="TD-mobile.css">
 <title>YOMOO.Trang Truyen</title>
-<!-- QUẢNG CÁO MONETAG -->
-					<div class="yomoo-monetag">
-						<script>
-						(function(s){
-							s.dataset.zone = '11752256';
-							s.dataset.cfasync = 'false';
-							s.src = 'https://nap5k.com/tag.min.js';
-						})(
-							[document.documentElement, document.body]
-							.filter(Boolean)
-							.pop()
-							.appendChild(document.createElement('script'))
-						);
-						</script>
-					</div>
+<script>
+(function(s){
+    s.dataset.zone = '11752256';
+    s.dataset.cfasync = 'false';
+    s.src = 'https://nap5k.com/tag.min.js';
+    document.head.appendChild(s);
+})(document.createElement('script'));
+</script>
 </head>
 
 <body>
 
 <div class="wapper">
-
+	
     <div class="up-header">
         <table>
             <tr>
@@ -165,7 +158,35 @@
             </tr>
         </table>
     </div>
-						
+		<!-- QUẢNG CÁO AIDZAP -->
+
+				<div id="aidzapAd" class="aidzap-ad">
+
+					<!-- PC 728x90 -->
+					<div class="dtr-ad-pc">
+						<iframe
+							src="https://aidzap.com/ad/ae67fa96-b7fb-44ec-96cf-ccb3c998df9b"
+							width="728"
+							height="90"
+							scrolling="no"
+							frameborder="0"
+							style="border:none;">
+						</iframe>
+					</div>
+
+					<!-- MOBILE 320x100 -->
+					<div class="dtr-ad-mobile">
+						<iframe
+							src="https://aidzap.com/ad/04bb2a35-75fa-4874-9efb-7ebdef081d85"
+							width="320"
+							height="100"
+							scrolling="no"
+							frameborder="0"
+							style="border:none;">
+						</iframe>
+					</div>
+
+				</div>				
     <div class="main-content">
 
         <div class="content">
@@ -228,21 +249,29 @@
                         <p id="desc-text">Chưa có mô tả.</p>
                         <button id="desc-btn">Xem thêm</button>
                     </div>
-					<!-- QUẢNG CÁO MONETAG -->
-					<div class="yomoo-ad">
-						<script>
-						(function(s){
-							s.dataset.zone = '11752256';
-							s.dataset.cfasync = 'false';
-							s.src = 'https://nap5k.com/tag.min.js';
-						})(
-							[document.documentElement, document.body]
-							.filter(Boolean)
-							.pop()
-							.appendChild(document.createElement('script'))
-						);
-						</script>
-					</div>
+					<!-- QUẢNG CÁO AIDZAP -->
+
+					<!-- AIDZAP 728x90 -->
+						<div id="aidzap1">
+							<iframe
+								src="https://aidzap.com/ad/ae67fa96-b7fb-44ec-96cf-ccb3c998df9b"
+								width="728"
+								height="90"
+								scrolling="no"
+								frameborder="0">
+							</iframe>
+						</div>
+
+						<!-- AIDZAP 320x100 -->
+						<div id="aidzap2">
+							<iframe
+								src="https://aidzap.com/ad/04bb2a35-75fa-4874-9efb-7ebdef081d85"
+								width="320"
+								height="100"
+								scrolling="no"
+								frameborder="0">
+							</iframe>
+						</div>
                     <div class="box chapter-box">
                         <h3>⭐ DANH SÁCH CHƯƠNG</h3>
 
@@ -297,7 +326,6 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
-<script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="menu.js"></script>
 <script src="search.js"></script>
