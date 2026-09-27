@@ -1594,8 +1594,64 @@ body{
         margin-left:0 !important;
         white-space:normal !important;
     }
-.yomoo-ad {
+.dtr-ad-pc {
     width: 100%;
-    margin: 15px auto;
-    text-align: center;
+    min-height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    position: relative;
+    z-index: 10;
+}
+
+/* =========================
+   AIDZAP
+   PC: 728x90
+   MOBILE: 320x100
+========================= */
+
+.dtr-ad-pc {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+/* PC */
+.ad-pc {
+    display: block;
+    width: 728px;
+    height: 90px;
+    border: none;
+}
+
+.ad-mobile {
+    display: none;
+}
+
+
+/* MOBILE */
+@media screen and (max-width: 768px) {
+
+    .dtr-ad-pc {
+        width: 100%;
+        min-height: 100px;
+        margin: 15px auto;
+    }
+
+    .ad-pc {
+        display: none;
+    }
+
+    .ad-mobile {
+        display: block;
+        width: 320px;
+        height: 100px;
+        max-width: 100%;
+        border: none;
+    }
+
 }
