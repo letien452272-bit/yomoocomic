@@ -114,38 +114,109 @@ if(coverInput){
 
 async function uploadFileToR2(file, options = {}) {
 
-    if(!file){
+    if (!file) {
         throw new Error("Không có file để upload.");
     }
 
     var db = getSupabase();
 
-    if(!db){
+    if (!db || !db.auth) {
         throw new Error("Supabase chưa được kết nối.");
     }
 
     /* =========================
-       LẤY SESSION ĐĂNG NHẬP
+       LẤY SESSION MỚI NHẤT
     ========================= */
 
     var sessionResult = await db.auth.getSession();
 
-    if(sessionResult.error){
+    if (sessionResult.error) {
         console.error("Lỗi lấy session:", sessionResult.error);
         throw new Error("Không lấy được phiên đăng nhập.");
     }
 
-    var session =
-        sessionResult.data &&
-        sessionResult.data.session;
+    var session = sessionResult.data?.session;
 
-    if(!session || !session.access_token){
-        throw new Error("Bạn chưa đăng nhập.");
+    /* =========================
+       NẾU TOKEN HẾT HẠN
+       → REFRESH TOKEN
+    ========================= */
+
+    if (!session || !session.access_token) {
+
+        console.log("Không có access token, đang refresh session...");
+
+        var refreshResult = await db.auth.refreshSession();
+
+        if (refreshResult.error) {
+            console.error(
+                "Refresh session lỗi:",
+                refreshResult.error
+            );
+
+            throw new Error(
+                "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            );
+        }
+
+        session = refreshResult.data?.session;
+    }
+
+    if (!session || !session.access_token) {
+        throw new Error(
+            "Không lấy được access token. Vui lòng đăng nhập lại."
+        );
     }
 
     var token = session.access_token;
 
-    console.log("Đã lấy được Supabase access token.");
+    console.log(
+        "Đã lấy access token:",
+        token.substring(0, 20) + "..."
+    );
+
+    /* =========================
+       KIỂM TRA USER HIỆN TẠI
+    ========================= */
+
+    var userResult = await db.auth.getUser(token);
+
+    if (userResult.error || !userResult.data?.user) {
+
+        console.log(
+            "Token hiện tại không hợp lệ, thử refresh..."
+        );
+
+        var refreshResult2 = await db.auth.refreshSession();
+
+        if (
+            refreshResult2.error ||
+            !refreshResult2.data?.session
+        ) {
+            throw new Error(
+                "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại."
+            );
+        }
+
+        session = refreshResult2.data.session;
+        token = session.access_token;
+
+        var userCheck = await db.auth.getUser(token);
+
+        if (
+            userCheck.error ||
+            !userCheck.data?.user
+        ) {
+            throw new Error(
+                "Token Supabase không hợp lệ. Vui lòng đăng nhập lại."
+            );
+        }
+    }
+
+    console.log(
+        "User Supabase:",
+        session.user?.email || "Không rõ"
+    );
 
     /* =========================
        TẠO FORM DATA
@@ -160,32 +231,34 @@ async function uploadFileToR2(file, options = {}) {
         options.type || "cover"
     );
 
-    if(options.mangaId){
+    if (options.mangaId) {
         formData.append(
             "mangaId",
             String(options.mangaId)
         );
     }
 
-    if(options.chapterNumber){
+    if (options.chapterNumber) {
         formData.append(
             "chapterNumber",
             String(options.chapterNumber)
         );
     }
 
-    console.log(
-        "Đang upload R2:",
-        file.name,
-        options.type
-    );
-
     /* =========================
-       GỌI CLOUDFLARE WORKER
+       UPLOAD CLOUDFLARE R2
     ========================= */
 
+    var workerUrl =
+        "https://dark-snow-9711.letien-452272.workers.dev/upload";
+
+    console.log(
+        "Đang upload R2:",
+        file.name
+    );
+
     var response = await fetch(
-    "https://dark-snow-9711.letien-452272.workers.dev/upload",
+        workerUrl,
         {
             method: "POST",
 
@@ -199,11 +272,12 @@ async function uploadFileToR2(file, options = {}) {
 
     var text = await response.text();
 
-    var data = null;
+    var data;
 
-    try{
+    try {
         data = JSON.parse(text);
-    }catch(e){
+    } catch (e) {
+
         console.error(
             "Worker trả về không phải JSON:",
             text
@@ -215,16 +289,29 @@ async function uploadFileToR2(file, options = {}) {
     }
 
     /* =========================
-       KIỂM TRA LỖI WORKER
+       XỬ LÝ LỖI
     ========================= */
 
-    if(!response.ok){
+    if (!response.ok) {
 
         console.error(
-            "Upload R2 thất bại:",
+            "Worker upload lỗi:",
             response.status,
             data
         );
+
+        if (response.status === 401) {
+            throw new Error(
+                "Token Supabase không được Worker chấp nhận. Hãy đăng nhập lại."
+            );
+        }
+
+        if (response.status === 403) {
+            throw new Error(
+                data.error ||
+                "Tài khoản không có quyền upload."
+            );
+        }
 
         throw new Error(
             data.error ||
@@ -233,14 +320,19 @@ async function uploadFileToR2(file, options = {}) {
         );
     }
 
-    if(!data.url){
+    /* =========================
+       KIỂM TRA URL
+    ========================= */
+
+    if (!data.url) {
+
         console.error(
             "Worker không trả URL:",
             data
         );
 
         throw new Error(
-            "Worker không trả về URL ảnh."
+            "Upload thành công nhưng Worker không trả về URL ảnh."
         );
     }
 
