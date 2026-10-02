@@ -112,39 +112,148 @@ if(coverInput){
 
 /* ================== UPLOAD R2 ================== */
 
-async function uploadFileToR2(file, options){
+const R2_UPLOAD_URL =
+    "https://dark-snow-9711.letien-452272.workers.dev/upload";
+
+async function uploadFileToR2(file, options = {}) {
+
+    if(!file){
+        throw new Error("Không có file để upload.");
+    }
+
+    var db = getSupabase();
+
+    if(!db){
+        throw new Error("Supabase chưa được kết nối.");
+    }
+
+    /* =========================
+       LẤY SESSION ĐĂNG NHẬP
+    ========================= */
+
+    var sessionResult = await db.auth.getSession();
+
+    if(sessionResult.error){
+        console.error("Lỗi lấy session:", sessionResult.error);
+        throw new Error("Không lấy được phiên đăng nhập.");
+    }
+
+    var session =
+        sessionResult.data &&
+        sessionResult.data.session;
+
+    if(!session || !session.access_token){
+        throw new Error("Bạn chưa đăng nhập.");
+    }
+
+    var token = session.access_token;
+
+    console.log("Đã lấy được Supabase access token.");
+
+    /* =========================
+       TẠO FORM DATA
+    ========================= */
+
     var formData = new FormData();
 
     formData.append("file", file);
-    formData.append("type", options.type);
+
+    formData.append(
+        "type",
+        options.type || "cover"
+    );
 
     if(options.mangaId){
-        formData.append("mangaId", options.mangaId);
+        formData.append(
+            "mangaId",
+            String(options.mangaId)
+        );
     }
 
     if(options.chapterNumber){
-        formData.append("chapterNumber", options.chapterNumber);
+        formData.append(
+            "chapterNumber",
+            String(options.chapterNumber)
+        );
     }
 
-    var response = await fetch(R2_UPLOAD_URL, {
-        method: "POST",
-        body: formData
-    });
+    console.log(
+        "Đang upload R2:",
+        file.name,
+        options.type
+    );
+
+    /* =========================
+       GỌI CLOUDFLARE WORKER
+    ========================= */
+
+    var response = await fetch(
+        R2_UPLOAD_URL,
+        {
+            method: "POST",
+
+            headers: {
+                "Authorization": "Bearer " + token
+            },
+
+            body: formData
+        }
+    );
+
+    var text = await response.text();
+
+    var data = null;
+
+    try{
+        data = JSON.parse(text);
+    }catch(e){
+        console.error(
+            "Worker trả về không phải JSON:",
+            text
+        );
+
+        throw new Error(
+            "Worker trả về dữ liệu không hợp lệ."
+        );
+    }
+
+    /* =========================
+       KIỂM TRA LỖI WORKER
+    ========================= */
 
     if(!response.ok){
-        var errorText = await response.text();
-        throw new Error(errorText || "Upload R2 thất bại!");
-    }
 
-    var data = await response.json();
+        console.error(
+            "Upload R2 thất bại:",
+            response.status,
+            data
+        );
+
+        throw new Error(
+            data.error ||
+            data.message ||
+            "Upload R2 thất bại."
+        );
+    }
 
     if(!data.url){
-        throw new Error("Worker không trả về URL ảnh.");
+        console.error(
+            "Worker không trả URL:",
+            data
+        );
+
+        throw new Error(
+            "Worker không trả về URL ảnh."
+        );
     }
+
+    console.log(
+        "Upload R2 thành công:",
+        data.url
+    );
 
     return data.url;
 }
-
 /* ================== BUTTON LOADING ================== */
 
 function setButtonsLoading(isLoading){
