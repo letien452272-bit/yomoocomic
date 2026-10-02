@@ -10,18 +10,25 @@ async function uploadFileToR2(file, options = {}) {
     const { data, error } =
         await supabase.auth.getSession();
 
+    console.log("SUPABASE SESSION:", data?.session);
+
     if (error) {
-        console.error(error);
+        console.error("Session error:", error);
         throw new Error("Không lấy được phiên đăng nhập.");
     }
 
     const session = data?.session;
 
-    if (!session?.access_token) {
+    if (!session || !session.access_token) {
         throw new Error("Bạn chưa đăng nhập.");
     }
 
     const token = session.access_token;
+
+    console.log(
+        "TOKEN:",
+        token.substring(0, 20) + "..."
+    );
 
     const formData = new FormData();
 
@@ -42,6 +49,8 @@ async function uploadFileToR2(file, options = {}) {
         String(options.chapterNumber || "0")
     );
 
+    console.log("Đang gửi upload tới Worker...");
+
     const response = await fetch(
         R2_WORKER_URL + "/upload",
         {
@@ -51,21 +60,32 @@ async function uploadFileToR2(file, options = {}) {
                 "Authorization": "Bearer " + token
             },
 
-            body: formData
+            body: formData,
+
+            cache: "no-store"
         }
     );
 
     const text = await response.text();
 
-    console.log("Worker status:", response.status);
-    console.log("Worker response:", text);
+    console.log(
+        "Worker HTTP:",
+        response.status
+    );
+
+    console.log(
+        "Worker trả về:",
+        text
+    );
 
     let result;
 
     try {
         result = JSON.parse(text);
     } catch (e) {
-        throw new Error("Worker trả về dữ liệu không hợp lệ.");
+        throw new Error(
+            "Worker trả về dữ liệu không hợp lệ."
+        );
     }
 
     if (!response.ok) {
