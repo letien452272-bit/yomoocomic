@@ -7,13 +7,15 @@ async function uploadFileToR2(file, options = {}) {
         throw new Error("Không có file để upload.");
     }
 
+    // ==============================
+    // LẤY SESSION
+    // ==============================
+
     const { data, error } =
         await supabase.auth.getSession();
 
-    console.log("SUPABASE SESSION:", data?.session);
-
     if (error) {
-        console.error("Session error:", error);
+        console.error("Lỗi session:", error);
         throw new Error("Không lấy được phiên đăng nhập.");
     }
 
@@ -25,10 +27,11 @@ async function uploadFileToR2(file, options = {}) {
 
     const token = session.access_token;
 
-    console.log(
-        "TOKEN:",
-        token.substring(0, 20) + "..."
-    );
+    console.log("Đã lấy token Supabase.");
+
+    // ==============================
+    // FORM DATA
+    // ==============================
 
     const formData = new FormData();
 
@@ -49,19 +52,20 @@ async function uploadFileToR2(file, options = {}) {
         String(options.chapterNumber || "0")
     );
 
-    console.log("Đang gửi upload tới Worker...");
+    // Gửi JWT trực tiếp trong FormData
+    formData.append("token", token);
+
+    // ==============================
+    // UPLOAD
+    // ==============================
+
+    console.log("Đang upload lên R2...");
 
     const response = await fetch(
         R2_WORKER_URL + "/upload",
         {
             method: "POST",
-
-            headers: {
-                "Authorization": "Bearer " + token
-            },
-
             body: formData,
-
             cache: "no-store"
         }
     );
@@ -69,12 +73,12 @@ async function uploadFileToR2(file, options = {}) {
     const text = await response.text();
 
     console.log(
-        "Worker HTTP:",
+        "Worker status:",
         response.status
     );
 
     console.log(
-        "Worker trả về:",
+        "Worker response:",
         text
     );
 
@@ -95,6 +99,11 @@ async function uploadFileToR2(file, options = {}) {
             "Upload R2 thất bại."
         );
     }
+
+    console.log(
+        "Upload R2 thành công:",
+        result
+    );
 
     return result;
 }
