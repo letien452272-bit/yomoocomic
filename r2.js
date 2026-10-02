@@ -6,7 +6,10 @@ async function uploadFileToR2(file, options = {}) {
         throw new Error("Không có file để upload.");
     }
 
-    // Lấy session hiện tại từ Supabase
+    // ==============================
+    // LẤY SESSION SUPABASE
+    // ==============================
+
     const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
 
@@ -18,38 +21,51 @@ async function uploadFileToR2(file, options = {}) {
     const session = sessionData?.session;
 
     if (!session || !session.access_token) {
-        throw new Error("Bạn chưa đăng nhập");
+        throw new Error("Bạn chưa đăng nhập.");
     }
 
     const token = session.access_token;
 
-    // Tên file
+    console.log("Đã lấy được Supabase token.");
+
+    // ==============================
+    // TÊN FILE
+    // ==============================
+
     const fileName =
         options.fileName ||
         file.name ||
         ("file-" + Date.now());
 
-    // Đường dẫn R2
+    // ==============================
+    // ĐƯỜNG DẪN R2
+    // ==============================
+
     const path =
         options.path ||
         fileName;
 
-    // Tạo FormData
+    // ==============================
+    // FORMDATA
+    // ==============================
+
     const formData = new FormData();
 
     formData.append("file", file);
     formData.append("path", path);
 
-    // Nếu có thêm các thông tin khác
     if (options.folder) {
         formData.append("folder", options.folder);
     }
 
     console.log("Đang upload R2:", path);
 
-    // Gọi Worker
+    // ==============================
+    // GỌI WORKER
+    // ==============================
+
     const response = await fetch(
-        "https://dark-snow-9711.yomoo.workers.dev/upload",
+        R2_WORKER_URL + "/upload",
         {
             method: "POST",
 
@@ -63,23 +79,39 @@ async function uploadFileToR2(file, options = {}) {
 
     const text = await response.text();
 
+    console.log("R2 Worker response:", text);
+
     let result;
 
     try {
         result = JSON.parse(text);
     } catch (e) {
-        console.error("Worker trả về:", text);
+        console.error("Worker trả về không phải JSON:", text);
         throw new Error("Worker trả về dữ liệu không hợp lệ.");
     }
 
+    // ==============================
+    // KIỂM TRA LỖI
+    // ==============================
+
     if (!response.ok) {
-        console.error("Lỗi upload R2:", result);
+
+        console.error(
+            "Upload R2 thất bại:",
+            response.status,
+            result
+        );
+
         throw new Error(
             result.error ||
             result.message ||
             "Upload R2 thất bại."
         );
     }
+
+    // ==============================
+    // THÀNH CÔNG
+    // ==============================
 
     console.log("Upload R2 thành công:", result);
 
