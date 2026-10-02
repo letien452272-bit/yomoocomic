@@ -215,6 +215,7 @@ function handleFiles(files){
 }
 
 function renderPreview(){
+
     if(uploadError){
         uploadError.style.display = "none";
     }
@@ -236,7 +237,9 @@ function renderPreview(){
 }
 
 function loadImageFromFile(file){
+
     return new Promise(function(resolve, reject){
+
         var img = new Image();
 
         img.onload = function(){
@@ -252,17 +255,17 @@ function loadImageFromFile(file){
 }
 
 function canvasToBlob(canvas, type, quality){
+
     return new Promise(function(resolve){
+
         canvas.toBlob(function(blob){
             resolve(blob);
         }, type, quality);
+
     });
 }
 
-/* ================== WATERMARK ẢNH CHAPTER ==================
-   ĐÃ XÓA LOGO GIỮA ẢNH
-   CHỈ GIỮ LOGO Ở GÓC TRÊN BÊN PHẢI
-=========================================================== */
+/* ================== WATERMARK ẢNH CHAPTER ================== */
 
 async function addWatermarkToImage(file){
 
@@ -274,7 +277,13 @@ async function addWatermarkToImage(file){
     canvas.width = img.naturalWidth || img.width;
     canvas.height = img.naturalHeight || img.height;
 
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+        img,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
     var logo = new Image();
 
@@ -283,21 +292,29 @@ async function addWatermarkToImage(file){
         logo.onload = resolve;
 
         logo.onerror = function(){
-            reject(new Error("Không tìm thấy Image/LOGO WEB.png"));
+            reject(
+                new Error("Không tìm thấy Image/LOGO WEB.png")
+            );
         };
 
         logo.src = "Image/LOGO WEB.png";
     });
 
-    /*
-        Logo góc trên bên phải.
-        Không còn logo mờ ở giữa ảnh nữa.
-    */
+    var cornerLogoWidth =
+        Math.min(
+            170,
+            canvas.width * 0.2
+        );
 
-    var cornerLogoWidth = Math.min(170, canvas.width * 0.2);
-    var cornerLogoHeight = logo.height * (cornerLogoWidth / logo.width);
+    var cornerLogoHeight =
+        logo.height *
+        (cornerLogoWidth / logo.width);
 
-    var padding = Math.max(12, canvas.width * 0.018);
+    var padding =
+        Math.max(
+            12,
+            canvas.width * 0.018
+        );
 
     ctx.save();
 
@@ -305,7 +322,9 @@ async function addWatermarkToImage(file){
 
     ctx.drawImage(
         logo,
-        canvas.width - cornerLogoWidth - padding,
+        canvas.width -
+            cornerLogoWidth -
+            padding,
         padding,
         cornerLogoWidth,
         cornerLogoHeight
@@ -332,44 +351,79 @@ async function addWatermarkToImage(file){
     );
 }
 
+/* ================== UPLOAD R2 ================== */
+
 async function uploadFileToR2(file, options){
 
     var formData = new FormData();
 
-    formData.append("file", file);
-    formData.append("type", "chapter");
-    formData.append("mangaId", options.mangaId);
-    formData.append("chapterNumber", options.chapterNumber);
+    formData.append(
+        "file",
+        file
+    );
+
+    formData.append(
+        "type",
+        "chapter"
+    );
+
+    formData.append(
+        "mangaId",
+        options.mangaId
+    );
+
+    formData.append(
+        "chapterNumber",
+        options.chapterNumber
+    );
 
     const {
-    data: { session }
-} = await supabase.auth.getSession();
+        data: { session }
+    } = await supabase.auth.getSession();
 
-if (!session) {
-    throw new Error("Bạn chưa đăng nhập.");
-}
-
-var response = await fetch(R2_UPLOAD_URL, {
-    method: "POST",
-    headers: {
-        Authorization: `Bearer ${session.access_token}`
-    },
-    body: formData
-});
-
-    if(!response.ok){
-        var errorText = await response.text();
-        throw new Error("Upload R2 thất bại: " + errorText);
+    if(!session){
+        throw new Error("Bạn chưa đăng nhập.");
     }
 
-    var data = await response.json();
+    var response = await fetch(
+        R2_UPLOAD_URL,
+        {
+            method: "POST",
+
+            headers: {
+                Authorization:
+                    "Bearer " +
+                    session.access_token
+            },
+
+            body: formData
+        }
+    );
+
+    if(!response.ok){
+
+        var errorText =
+            await response.text();
+
+        throw new Error(
+            "Upload R2 thất bại: " +
+            errorText
+        );
+    }
+
+    var data =
+        await response.json();
 
     if(!data.url){
-        throw new Error("Worker không trả về URL ảnh!");
+        throw new Error(
+            "Worker không trả về URL ảnh!"
+        );
     }
 
     return data.url;
 }
+
+/* ================== UPLOAD TOÀN BỘ ẢNH CHAPTER ================== */
 
 async function uploadChapterImages(number){
 
@@ -379,41 +433,83 @@ async function uploadChapterImages(number){
         return a.order - b.order;
     });
 
-    for(var i = 0; i < chapterImageList.length; i++){
+    for(
+        var i = 0;
+        i < chapterImageList.length;
+        i++
+    ){
 
-        var item = chapterImageList[i];
+        var item =
+            chapterImageList[i];
 
+        /* ẢNH CŨ */
         if(item.old && item.url){
-            uploadedImages.push(JSON.stringify({
-                name: item.name,
-                url: item.url,
-                order: i + 1
-            }));
+
+            uploadedImages.push(
+                JSON.stringify({
+                    name: item.name,
+                    url: item.url,
+                    order: i + 1
+                })
+            );
 
             continue;
         }
 
-        setSaveButtonLoading(true, "Đang đóng dấu ảnh " + (i + 1) + "/" + chapterImageList.length + "...");
+        setSaveButtonLoading(
+            true,
+            "Đang đóng dấu ảnh " +
+            (i + 1) +
+            "/" +
+            chapterImageList.length +
+            "..."
+        );
 
         try{
-            var watermarkedFile = await addWatermarkToImage(item.file);
 
-            setSaveButtonLoading(true, "Đang upload ảnh " + (i + 1) + "/" + chapterImageList.length + " lên R2...");
+            var watermarkedFile =
+                await addWatermarkToImage(
+                    item.file
+                );
 
-            var imageUrl = await uploadFileToR2(watermarkedFile, {
-                mangaId: mangaId,
-                chapterNumber: number
-            });
+            setSaveButtonLoading(
+                true,
+                "Đang upload ảnh " +
+                (i + 1) +
+                "/" +
+                chapterImageList.length +
+                " lên R2..."
+            );
 
-            uploadedImages.push(JSON.stringify({
-                name: watermarkedFile.name,
-                url: imageUrl,
-                order: i + 1
-            }));
+            var imageUrl =
+                await uploadFileToR2(
+                    watermarkedFile,
+                    {
+                        mangaId: mangaId,
+                        chapterNumber: number
+                    }
+                );
+
+            uploadedImages.push(
+                JSON.stringify({
+                    name:
+                        watermarkedFile.name,
+                    url:
+                        imageUrl,
+                    order:
+                        i + 1
+                })
+            );
 
         }catch(error){
-            alert("Lỗi xử lý/upload ảnh: " + error.message);
+
+            alert(
+                "Lỗi xử lý/upload ảnh: " +
+                error.message
+            );
+
             console.log(error);
+
             return null;
         }
     }
@@ -421,130 +517,285 @@ async function uploadChapterImages(number){
     return uploadedImages;
 }
 
+/* ================== LƯU CHAPTER ================== */
+
 saveChapterBtn.onclick = async function(){
 
     if(isImageUploading){
-        alert("Ảnh đang tải, vui lòng chờ hoàn tất.");
+        alert(
+            "Ảnh đang tải, vui lòng chờ hoàn tất."
+        );
         return;
     }
 
-    var number = chapterNumber.value.trim();
+    var number =
+        chapterNumber.value.trim();
 
     if(number === ""){
-        alert("Vui lòng nhập số chương!");
+        alert(
+            "Vui lòng nhập số chương!"
+        );
         return;
     }
 
     if(chapterImageList.length === 0){
+
         if(uploadError){
-            uploadError.style.display = "block";
+            uploadError.style.display =
+                "block";
         }
 
-        alert("Vui lòng upload ít nhất 1 ảnh!");
+        alert(
+            "Vui lòng upload ít nhất 1 ảnh!"
+        );
+
         return;
     }
 
-    setSaveButtonLoading(true, "Đang lưu chapter...");
+    setSaveButtonLoading(
+        true,
+        "Đang lưu chapter..."
+    );
 
-    var uploadedImages = await uploadChapterImages(number);
+    var uploadedImages =
+        await uploadChapterImages(
+            number
+        );
 
     if(!uploadedImages){
+
         setSaveButtonLoading(false);
+
         return;
     }
 
     var chapterData = {
-        manga_id: mangaId,
-        number: Number(number),
-        title: chapterTitle.value.trim(),
-        images: uploadedImages
+
+        manga_id:
+            mangaId,
+
+        number:
+            Number(number),
+
+        title:
+            chapterTitle.value.trim(),
+
+        images:
+            uploadedImages
     };
 
-    console.log("CHAPTER DATA:", chapterData);
+    console.log(
+        "CHAPTER DATA:",
+        chapterData
+    );
 
     var result;
 
+    /* =========================
+       SỬA CHAPTER
+    ========================= */
+
     if(editChapterId){
-        result = await supabase
-            .from("chapters")
-            .update(chapterData)
-            .eq("id", editChapterId);
-    }else{
-        result = await supabase
-            .from("chapters")
-            .insert([chapterData])
-            .select();
+
+        result =
+            await supabase
+                .from("chapters")
+                .update(chapterData)
+                .eq("id", editChapterId);
+
     }
 
-    console.log("INSERT RESULT:", result);
+    /* =========================
+       THÊM CHAPTER
+    ========================= */
+
+    else{
+
+        result =
+            await supabase
+                .from("chapters")
+                .insert([
+                    chapterData
+                ])
+                .select();
+
+    }
+
+    console.log(
+        "INSERT / UPDATE RESULT:",
+        result
+    );
 
     if(result.error){
-        console.log(result.error);
-        alert("Lỗi lưu chapter: " + result.error.message);
+
+        console.log(
+            result.error
+        );
+
+        alert(
+            "Lỗi lưu chapter: " +
+            result.error.message
+        );
+
         setSaveButtonLoading(false);
+
         return;
     }
 
-    localStorage.removeItem("editChapterId");
-    localStorage.removeItem("currentChapterId");
+    /* =========================================
+       CẬP NHẬT CHAPTER MỚI NHẤT CHO TRUYỆN
+       ========================================= */
 
-    alert("Đã lưu chapter thành công!");
+    var latestChapterResult =
+        await supabase
+            .from("mangas")
+            .update({
+                latest_chapter:
+                    String(number)
+            })
+            .eq("id", mangaId);
 
-    window.location.href = "Quanlytruyenchitiet.html";
+    if(latestChapterResult.error){
+
+        console.log(
+            "Lỗi cập nhật latest_chapter:",
+            latestChapterResult.error
+        );
+
+        alert(
+            "Chapter đã lưu nhưng không cập nhật được chapter mới nhất: " +
+            latestChapterResult.error.message
+        );
+
+        setSaveButtonLoading(false);
+
+        return;
+    }
+
+    console.log(
+        "Đã cập nhật chapter mới nhất:",
+        number
+    );
+
+    /* =========================
+       DỌN LOCAL STORAGE
+    ========================= */
+
+    localStorage.removeItem(
+        "editChapterId"
+    );
+
+    localStorage.removeItem(
+        "currentChapterId"
+    );
+
+    setSaveButtonLoading(
+        false
+    );
+
+    alert(
+        "Đã lưu chapter thành công!"
+    );
+
+    window.location.href =
+        "Quanlytruyenchitiet.html";
 };
 
 initPage();
 
-/* GIỚI HẠN PREVIEW ẢNH 3 HÀNG RỒI CUỘN */
-var fixPreviewScrollStyle = document.createElement("style");
+/* =========================
+   CSS PREVIEW
+========================= */
+
+var fixPreviewScrollStyle =
+    document.createElement("style");
 
 fixPreviewScrollStyle.innerHTML = `
+
     #imagePreview{
         display:grid !important;
-        grid-template-columns:repeat(6, 1fr) !important;
+        grid-template-columns:
+            repeat(6, 1fr) !important;
+
         gap:14px !important;
 
-        max-height:765px !important;
+        max-height:
+            765px !important;
+
         overflow-y:auto !important;
         overflow-x:hidden !important;
 
-        padding-right:10px !important;
-        box-sizing:border-box !important;
+        padding-right:
+            10px !important;
+
+        box-sizing:
+            border-box !important;
     }
 
     #imagePreview .preview-item{
-        height:245px !important;
-        overflow:hidden !important;
-        box-sizing:border-box !important;
+
+        height:
+            245px !important;
+
+        overflow:
+            hidden !important;
+
+        box-sizing:
+            border-box !important;
     }
 
     #imagePreview .preview-item img{
-        width:100% !important;
-        height:155px !important;
-        object-fit:cover !important;
-        display:block !important;
+
+        width:
+            100% !important;
+
+        height:
+            155px !important;
+
+        object-fit:
+            cover !important;
+
+        display:
+            block !important;
     }
 
     #imagePreview::-webkit-scrollbar{
-        width:8px !important;
+
+        width:
+            8px !important;
     }
 
     #imagePreview::-webkit-scrollbar-thumb{
-        background:#4b5f7c !important;
-        border-radius:10px !important;
+
+        background:
+            #4b5f7c !important;
+
+        border-radius:
+            10px !important;
     }
 
     #imagePreview::-webkit-scrollbar-track{
-        background:#172033 !important;
-        border-radius:10px !important;
+
+        background:
+            #172033 !important;
+
+        border-radius:
+            10px !important;
     }
 
     @media screen and (max-width:768px){
+
         #imagePreview{
-            grid-template-columns:repeat(2, 1fr) !important;
-            max-height:765px !important;
+
+            grid-template-columns:
+                repeat(2, 1fr) !important;
+
+            max-height:
+                765px !important;
         }
     }
 `;
 
-document.head.appendChild(fixPreviewScrollStyle);
+document.head.appendChild(
+    fixPreviewScrollStyle
+);
