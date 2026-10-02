@@ -8,9 +8,6 @@ var coverText = document.getElementById("coverText");
 var selectedCoverFile = null;
 var oldCoverUrl = "";
 
-/* Nếu Worker của bạn upload bằng /upload thì giữ dòng này */
-const R2_UPLOAD_URL = atob("aHR0cHM6Ly9kYXJrLXNub3ctOTcxMS5sZXRpZW4tNDUyMjcyLndvcmtlcnMuZGV2");
-
 /* ================== XỬ LÝ THÊM / SỬA TRUYỆN ================== */
 
 var urlParams = new URLSearchParams(window.location.search);
@@ -19,13 +16,11 @@ var editParam = urlParams.get("edit");
 var editMangaId = editParam ? Number(editParam) : 0;
 var isEditMode = !!editMangaId;
 
-/* Nếu không có ?edit=ID thì chắc chắn là thêm truyện mới */
 if(!isEditMode){
     localStorage.removeItem("editMangaId");
     localStorage.removeItem("editingMangaId");
 }
 
-/* Nếu đang sửa thì lưu lại ID cho các trang khác dùng nếu cần */
 if(isEditMode){
     localStorage.setItem("editMangaId", editMangaId);
 }
@@ -166,9 +161,62 @@ function setButtonsLoading(isLoading){
     }
 }
 
+/* ================== THỂ LOẠI ================== */
+
+function normalizeMangaGenres(genres){
+    if(typeof genres === "string"){
+        try{
+            genres = JSON.parse(genres);
+        }catch(e){
+            genres = genres.split(",").map(function(item){
+                return item.trim();
+            });
+        }
+    }
+
+    if(!Array.isArray(genres)){
+        genres = [];
+    }
+
+    return genres.filter(function(item){
+        return item && String(item).trim() !== "";
+    });
+}
+
+function getGenres(){
+    var genreBox = document.getElementById("genreCheckboxBox");
+
+    if(genreBox && typeof getSelectedGenres === "function"){
+        return getSelectedGenres("genreCheckboxBox");
+    }
+
+    var genres = [];
+
+    document.querySelectorAll('input[name="genre"]:checked').forEach(function(item){
+        genres.push(item.value);
+    });
+
+    return genres;
+}
+
+async function setGenres(genres){
+    genres = normalizeMangaGenres(genres);
+
+    var genreBox = document.getElementById("genreCheckboxBox");
+
+    if(genreBox && typeof renderGenreCheckboxes === "function"){
+        await renderGenreCheckboxes("genreCheckboxBox", genres);
+        return;
+    }
+
+    document.querySelectorAll('input[name="genre"]').forEach(function(input){
+        input.checked = genres.includes(input.value);
+    });
+}
+
 /* ================== RESET FORM THÊM TRUYỆN ================== */
 
-function resetForm(){
+async function resetForm(){
     if(mangaForm){
         mangaForm.reset();
     }
@@ -204,43 +252,9 @@ function resetForm(){
         statusInput.value = "Đang tiến hành";
     }
 
-    document.querySelectorAll('input[name="genre"]').forEach(function(input){
-        input.checked = false;
-    });
+    await setGenres([]);
 
     updateStatusColor();
-}
-
-/* ================== THỂ LOẠI ================== */
-
-function getGenres(){
-    var genres = [];
-
-    document.querySelectorAll('input[name="genre"]:checked').forEach(function(item){
-        genres.push(item.value);
-    });
-
-    return genres;
-}
-
-function setGenres(genres){
-    if(typeof genres === "string"){
-        try{
-            genres = JSON.parse(genres);
-        }catch(e){
-            genres = genres.split(",").map(function(item){
-                return item.trim();
-            });
-        }
-    }
-
-    if(!Array.isArray(genres)){
-        genres = [];
-    }
-
-    document.querySelectorAll('input[name="genre"]').forEach(function(input){
-        input.checked = genres.includes(input.value);
-    });
 }
 
 /* ================== LOAD DỮ LIỆU KHI SỬA ================== */
@@ -288,7 +302,8 @@ async function loadOldMangaData(){
     }
 
     updateStatusColor();
-    setGenres(manga.genres);
+
+    await setGenres(manga.genres);
 
     oldCoverUrl = manga.cover || "";
 
@@ -401,7 +416,7 @@ async function saveManga(exitAfterSave){
     if(isEditMode){
         await loadOldMangaData();
     }else{
-        resetForm();
+        await resetForm();
     }
 }
 
@@ -422,8 +437,16 @@ if(saveExitBtn){
 
 /* ================== KHỞI ĐỘNG TRANG ================== */
 
-if(isEditMode){
-    loadOldMangaData();
-}else{
-    resetForm();
+async function initThemTrPage(){
+    if(typeof setupGenreBox === "function"){
+        await setupGenreBox();
+    }
+
+    if(isEditMode){
+        await loadOldMangaData();
+    }else{
+        await resetForm();
+    }
 }
+
+initThemTrPage();
