@@ -185,7 +185,7 @@ async function uploadFileToR2(file, options = {}) {
     ========================= */
 
     var response = await fetch(
-        R2_UPLOAD_URL,
+    "https://dark-snow-9711.letien-452272.workers.dev/upload",
         {
             method: "POST",
 
