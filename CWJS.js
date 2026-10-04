@@ -186,141 +186,122 @@ async function loadDataFromSupabase(){
         (mangaResult.data || []).map(
             function(manga){
 
-                var mangaChapters =
-                    chapters.filter(
-                        function(chapter){
-
-                            return String(
-                                chapter.manga_id
-                            ) === String(
-                                manga.id
-                            );
-
-                        }
-                    );
+                manga.chapters = mangaChapters;
 
 
-                /* =========================
-                   SẮP XẾP CHAPTER
-                   CHAPTER MỚI NHẤT LÊN ĐẦU
-                ========================= */
+/* =========================
+   CÓ CHAPTER
+========================= */
 
-                mangaChapters.sort(
-                    function(a, b){
+if(mangaChapters.length > 0){
 
-                        var timeA =
-                            new Date(
-                                a.created_at || 0
-                            ).getTime() || 0;
+    manga.releaseStatus = "released";
 
 
-                        var timeB =
-                            new Date(
-                                b.created_at || 0
-                            ).getTime() || 0;
+    /* =========================
+       TÌM CHAPTER CÓ SỐ LỚN NHẤT
+       ĐÂY MỚI LÀ CHAPTER MỚI NHẤT
+    ========================= */
+
+    var latestChapter = mangaChapters.reduce(
+        function(latest, chapter){
+
+            var currentNumber =
+                Number(chapter.number) || 0;
+
+            var latestNumber =
+                Number(latest.number) || 0;
+
+            return currentNumber > latestNumber
+                ? chapter
+                : latest;
+
+        }
+    );
 
 
-                        /* Có created_at thì ưu tiên */
+    /* =========================
+       SỐ CHAPTER MỚI NHẤT
+    ========================= */
 
-                        if(timeA !== timeB){
-
-                            return timeB - timeA;
-
-                        }
-
-
-                        /* Nếu thời gian giống nhau
-                           thì lấy số chapter */
-
-                        return Number(
-                            b.number || 0
-                        ) -
-                        Number(
-                            a.number || 0
-                        );
-
-                    }
-                );
+    manga.latestChapter =
+        Number(latestChapter.number) || 0;
 
 
-                manga.chapters =
-                    mangaChapters;
+    /* =========================
+       NGÀY CHAPTER MỚI NHẤT
+    ========================= */
+
+    manga.latestChapterCreatedAt =
+        latestChapter.created_at || "";
 
 
-                /* =========================
-                   CÓ CHAPTER
-                ========================= */
+    /* =========================
+       THỜI GIAN CẬP NHẬT
+    ========================= */
 
-                if(mangaChapters.length > 0){
-
-                    manga.releaseStatus =
-                        "released";
-
-
-                    /* =========================
-                       TÌM CHAPTER CAO NHẤT
-                    ========================= */
-
-                    var maxChapter = 0;
+    manga.updatedAt =
+        latestChapter.created_at ||
+        manga.updated_at ||
+        manga.created_at ||
+        "";
 
 
-                    mangaChapters.forEach(
-                        function(chapter){
+    console.log(
+        "===== CW MANGA ====="
+    );
 
-                            var number =
-                                Number(
-                                    chapter.number
-                                ) || 0;
+    console.log(
+        "Tên:",
+        manga.title
+    );
 
+    console.log(
+        "ID:",
+        manga.id
+    );
 
-                            if(number > maxChapter){
+    console.log(
+        "Latest chapter:",
+        manga.latestChapter
+    );
 
-                                maxChapter =
-                                    number;
+    console.log(
+        "Chapter created_at:",
+        manga.latestChapterCreatedAt
+    );
 
-                            }
+    console.log(
+        "updatedAt:",
+        manga.updatedAt
+    );
 
-                        }
-                    );
-
-
-                    manga.latestChapter =
-                        maxChapter;
-
-
-                    /* =========================
-                       CHAPTER MỚI NHẤT
-                    ========================= */
-
-                    var latestChapter =
-                        mangaChapters[0];
-
-
-                    manga.latestChapterCreatedAt =
-                        latestChapter.created_at || "";
+}
 
 
-                    /* =========================
-                       DÙNG created_at CỦA CHAPTER
-                       MỚI NHẤT
-                    ========================= */
+/* =========================
+   CHƯA CÓ CHAPTER
+========================= */
 
-                    if(
-                        latestChapter &&
-                        latestChapter.created_at
-                    ){
+else{
 
-                        manga.updatedAt =
-						latestChapter.created_at ||
-						manga.created_at ||
-						"";
+    manga.releaseStatus =
+        "upcoming";
 
-                    }else{
+    manga.latestChapter =
+        Number(
+            manga.latest_chapter
+        ) || 0;
 
-                        manga.updatedAt =
-                            manga.created_at || "";
+    manga.latestChapterCreatedAt =
+        "";
 
-                    }
+    manga.updatedAt =
+        manga.updated_at ||
+        manga.created_at ||
+        "";
+
+}
 
 
                     console.log(
@@ -399,42 +380,51 @@ async function loadDataFromSupabase(){
 
 function getChapterNumber(manga){
 
+    /* =========================
+       ƯU TIÊN latest_chapter
+    ========================= */
+
+    var latestFromDatabase =
+        Number(
+            manga.latest_chapter ??
+            manga.latestChapter ??
+            0
+        );
+
+    var maxFromChapters = 0;
+
+    /* =========================
+       KIỂM TRA CHAPTERS
+    ========================= */
+
     if(
-        manga.chapters &&
+        Array.isArray(manga.chapters) &&
         manga.chapters.length > 0
     ){
 
-        var maxChapter = 0;
+        manga.chapters.forEach(function(chapter){
 
+            var num =
+                Number(chapter.number) || 0;
 
-        manga.chapters.forEach(
-            function(chapter){
+            if(num > maxFromChapters){
 
-                var num =
-                    Number(
-                        chapter.number
-                    ) || 0;
-
-
-                if(num > maxChapter){
-
-                    maxChapter = num;
-
-                }
+                maxFromChapters = num;
 
             }
-        );
 
-
-        return maxChapter;
+        });
 
     }
 
+    /* =========================
+       LẤY SỐ LỚN NHẤT
+       GIỮA 2 NGUỒN
+    ========================= */
 
-    return Number(
-        manga.latestChapter ||
-        manga.latest_chapter ||
-        0
+    return Math.max(
+        latestFromDatabase,
+        maxFromChapters
     );
 
 }
@@ -604,18 +594,18 @@ function renderUpdatedMangas(){
 
             var timeA =
 				new Date(
+					a.updated_at ||
 					a.updatedAt ||
-					a.latestChapterCreatedAt ||
 					a.created_at ||
 					0
 				).getTime() || 0;
 
 
-            var timeB =
+			var timeB =
 				new Date(
-					a.updatedAt ||
-					a.latestChapterCreatedAt ||
-					a.created_at ||
+					b.updated_at ||
+					b.updatedAt ||
+					b.created_at ||
 					0
 				).getTime() || 0;
 
@@ -704,9 +694,10 @@ function renderUpdatedMangas(){
 
 
             var updateTime =
-                manga.latestChapterCreatedAt ||
-                manga.updatedAt ||
-                manga.created_at;
+				manga.updated_at ||
+				manga.updatedAt ||
+				manga.latestChapterCreatedAt ||
+				manga.created_at;
 
 
             var timeText =
