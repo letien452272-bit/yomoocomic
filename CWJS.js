@@ -84,417 +84,1237 @@ if(userBtn && userDropdown && userArrow){
     });
 }
 
-/* DATA */
+/* =========================
+   DATA
+========================= */
+
 var comicList = document.getElementById("comicList");
 var comingList = document.getElementById("comingList");
 
 var mangas = [];
 
+
+/* =========================
+   TẢI DỮ LIỆU SUPABASE
+========================= */
+
 async function loadDataFromSupabase(){
+
+    console.log("===== BẮT ĐẦU TẢI DỮ LIỆU CW =====");
+
+    /* =========================
+       LẤY MANGAS
+    ========================= */
+
     var mangaResult = await supabase
         .from("mangas")
         .select("*")
-        .order("id", { ascending:false });
+        .order("id", {
+            ascending: false
+        });
 
     if(mangaResult.error){
-        console.log(mangaResult.error);
-        alert("Lỗi tải truyện: " + mangaResult.error.message);
+
+        console.error(
+            "Lỗi tải mangas:",
+            mangaResult.error
+        );
+
+        alert(
+            "Lỗi tải truyện: " +
+            mangaResult.error.message
+        );
+
         return;
     }
+
+
+    /* =========================
+       LẤY CHAPTERS
+    ========================= */
 
     var chapterResult = await supabase
         .from("chapters")
         .select("*");
 
     if(chapterResult.error){
-        console.log(chapterResult.error);
-        alert("Lỗi tải chapter: " + chapterResult.error.message);
+
+        console.error(
+            "Lỗi tải chapters:",
+            chapterResult.error
+        );
+
+        alert(
+            "Lỗi tải chapter: " +
+            chapterResult.error.message
+        );
+
         return;
     }
+
 
     var chapters = chapterResult.data || [];
 
+
+    console.log(
+        "Tổng số truyện:",
+        mangaResult.data ? mangaResult.data.length : 0
+    );
+
+    console.log(
+        "Tổng số chapter:",
+        chapters.length
+    );
+
+
+    /* =========================
+       XỬ LÝ TỪNG TRUYỆN
+    ========================= */
+
     mangas = (mangaResult.data || []).map(function(manga){
+
         var mangaChapters = chapters.filter(function(chapter){
-            return String(chapter.manga_id) === String(manga.id);
+
+            return String(chapter.manga_id) ===
+                   String(manga.id);
+
         });
+
+
+        /* =========================
+           SẮP XẾP CHAPTER
+           CHAPTER MỚI NHẤT LÊN ĐẦU
+        ========================= */
 
         mangaChapters.sort(function(a, b){
-            var timeA = new Date(a.created_at || 0).getTime() || 0;
-            var timeB = new Date(b.created_at || 0).getTime() || 0;
 
+            var timeA =
+                new Date(
+                    a.created_at || 0
+                ).getTime() || 0;
+
+            var timeB =
+                new Date(
+                    b.created_at || 0
+                ).getTime() || 0;
+
+
+            /* Có created_at thì ưu tiên */
             if(timeA !== timeB){
+
                 return timeB - timeA;
+
             }
 
-            return Number(b.number || 0) - Number(a.number || 0);
+
+            /* Nếu thời gian giống nhau
+               thì lấy số chapter */
+
+            return Number(b.number || 0) -
+                   Number(a.number || 0);
+
         });
+
 
         manga.chapters = mangaChapters;
 
+
+        /* =========================
+           CÓ CHAPTER
+        ========================= */
+
         if(mangaChapters.length > 0){
+
             manga.releaseStatus = "released";
 
-            manga.latestChapter = Math.max.apply(null, mangaChapters.map(function(chapter){
-                return Number(chapter.number) || 0;
-            }));
 
-            manga.latestChapterCreatedAt = mangaChapters[0].created_at || "";
-            manga.updatedAt = manga.updated_at || manga.latestChapterCreatedAt || manga.created_at;
-        }else{
-            manga.releaseStatus = "upcoming";
-            manga.latestChapter = Number(manga.latestChapter || manga.latest_chapter || 0);
-            manga.latestChapterCreatedAt = "";
-            manga.updatedAt = manga.updated_at || manga.created_at;
+            /* =========================
+               TÌM CHAPTER CAO NHẤT
+            ========================= */
+
+            var maxChapter = 0;
+
+            mangaChapters.forEach(function(chapter){
+
+                var number =
+                    Number(chapter.number) || 0;
+
+                if(number > maxChapter){
+
+                    maxChapter = number;
+
+                }
+
+            });
+
+
+            manga.latestChapter = maxChapter;
+
+
+            /* =========================
+               CHAPTER MỚI NHẤT
+            ========================= */
+
+            var latestChapter =
+                mangaChapters[0];
+
+
+            manga.latestChapterCreatedAt =
+                latestChapter.created_at || "";
+
+
+            /* =========================
+               QUAN TRỌNG
+               
+               KHÔNG DÙNG mangas.updated_at
+               
+               CW LUÔN DÙNG created_at
+               CỦA CHAPTER MỚI NHẤT
+            ========================= */
+
+            if(
+                latestChapter &&
+                latestChapter.created_at
+            ){
+
+                manga.updatedAt =
+                    latestChapter.created_at;
+
+            }else{
+
+                manga.updatedAt =
+                    manga.created_at || "";
+
+            }
+
+
+            console.log(
+                "CW:",
+                manga.title,
+                "| Chap:",
+                manga.latestChapter,
+                "| Ngày:",
+                manga.updatedAt
+            );
+
         }
 
+
+        /* =========================
+           CHƯA CÓ CHAPTER
+        ========================= */
+
+        else{
+
+            manga.releaseStatus =
+                "upcoming";
+
+            manga.latestChapter = 0;
+
+            manga.latestChapterCreatedAt = "";
+
+            manga.updatedAt =
+                manga.created_at || "";
+
+        }
+
+
         return manga;
+
     });
 
+
+    console.log(
+        "Dữ liệu mangas sau xử lý:",
+        mangas
+    );
+
+
+    /* =========================
+       RENDER
+    ========================= */
+
     renderUpdatedMangas();
+
     renderComingMangas();
+
     renderRanking();
+
     renderHistory();
+
     setupBanner();
+
+
+    console.log(
+        "===== CW TẢI DỮ LIỆU XONG ====="
+    );
+
 }
+
+
+/* =========================
+   LẤY CHAPTER MỚI NHẤT
+========================= */
+
 function getChapterNumber(manga){
-    if(manga.chapters && manga.chapters.length > 0){
+
+    if(
+        manga.chapters &&
+        manga.chapters.length > 0
+    ){
+
         var maxChapter = 0;
 
+
         manga.chapters.forEach(function(chapter){
-            var num = Number(chapter.number) || 0;
+
+            var num =
+                Number(chapter.number) || 0;
+
 
             if(num > maxChapter){
+
                 maxChapter = num;
+
             }
+
         });
 
+
         return maxChapter;
+
     }
 
-    return Number(manga.latestChapter || manga.latest_chapter || 0);
+
+    return Number(
+        manga.latestChapter ||
+        manga.latest_chapter ||
+        0
+    );
+
 }
+
+
+/* =========================
+   LẤY LƯỢT XEM
+========================= */
+
 function getViewNumber(manga){
-    return Number(manga.views || manga.view || 0);
+
+    return Number(
+        manga.views ||
+        manga.view ||
+        0
+    );
+
 }
+
+
+/* =========================
+   TÍNH THỜI GIAN
+========================= */
 
 function getTimeAgo(dateString){
+
     if(!dateString){
+
         return "";
+
     }
+
 
     var now = new Date();
-    var updateDate = new Date(dateString);
 
-    if(isNaN(updateDate.getTime())){
+    var updateDate =
+        new Date(dateString);
+
+
+    if(
+        isNaN(
+            updateDate.getTime()
+        )
+    ){
+
         return "";
+
     }
 
-    var diff = now - updateDate;
 
-    var minutes = Math.floor(diff / (1000 * 60));
-    var hours = Math.floor(diff / (1000 * 60 * 60));
-    var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    var diff =
+        now - updateDate;
+
+
+    var minutes =
+        Math.floor(
+            diff /
+            (1000 * 60)
+        );
+
+
+    var hours =
+        Math.floor(
+            diff /
+            (1000 * 60 * 60)
+        );
+
+
+    var days =
+        Math.floor(
+            diff /
+            (1000 * 60 * 60 * 24)
+        );
+
 
     if(minutes < 1){
+
         return "Vừa xong";
+
     }
+
 
     if(hours < 1){
-        return minutes + " phút trước";
+
+        return minutes +
+               " phút trước";
+
     }
+
 
     if(hours < 24){
-        return hours + " giờ trước";
+
+        return hours +
+               " giờ trước";
+
     }
+
 
     if(days < 30){
-        return days + " ngày trước";
+
+        return days +
+               " ngày trước";
+
     }
 
+
     return "NEW";
+
 }
+
+
+/* =========================
+   MỞ TRUYỆN
+========================= */
 
 function openMangaUser(id){
-    localStorage.setItem("currentMangaId", id);
-    window.location.href = "TD.html?id=" + id;
+
+    localStorage.setItem(
+        "currentMangaId",
+        id
+    );
+
+    window.location.href =
+        "TD.html?id=" + id;
+
 }
 
-/* TRUYEN MOI CAP NHAT */
+
+/* =========================
+   TRUYỆN MỚI CẬP NHẬT
+========================= */
+
 function renderUpdatedMangas(){
-    if(!comicList) return;
+
+    if(!comicList){
+
+        return;
+
+    }
+
 
     comicList.innerHTML = "";
 
-    var releasedMangas = mangas.filter(function(manga){
-        return getChapterNumber(manga) > 0;
-    });
+
+    /* Chỉ lấy truyện đã có chapter */
+
+    var releasedMangas =
+        mangas.filter(function(manga){
+
+            return getChapterNumber(manga) > 0;
+
+        });
+
+
+    /* =========================
+       SẮP XẾP THEO CHAPTER
+       MỚI NHẤT VỪA UP
+       ========================= */
 
     releasedMangas.sort(function(a, b){
-        var timeA = new Date(a.updatedAt || a.updated_at || a.latestChapterCreatedAt || a.created_at || 0).getTime() || 0;
-        var timeB = new Date(b.updatedAt || b.updated_at || b.latestChapterCreatedAt || b.created_at || 0).getTime() || 0;
+
+        var timeA =
+            new Date(
+                a.latestChapterCreatedAt ||
+                a.updatedAt ||
+                a.created_at ||
+                0
+            ).getTime() || 0;
+
+
+        var timeB =
+            new Date(
+                b.latestChapterCreatedAt ||
+                b.updatedAt ||
+                b.created_at ||
+                0
+            ).getTime() || 0;
+
 
         return timeB - timeA;
+
     });
 
-    var limitUpdatedMangas = window.innerWidth <= 768 ? 9 : 14;
-    var displayMangas = releasedMangas.slice(0, limitUpdatedMangas);
+
+    var limitUpdatedMangas =
+        window.innerWidth <= 768
+            ? 9
+            : 14;
+
+
+    var displayMangas =
+        releasedMangas.slice(
+            0,
+            limitUpdatedMangas
+        );
+
+
+    /* =========================
+       KHÔNG CÓ TRUYỆN
+    ========================= */
 
     if(displayMangas.length === 0){
+
         comicList.innerHTML = `
-            <p style="color:white;text-align:center;width:100%;grid-column:1/-1;">
+
+            <p
+                style="
+                    color:white;
+                    text-align:center;
+                    width:100%;
+                    grid-column:1/-1;
+                "
+            >
                 Chưa có truyện mới cập nhật
             </p>
 
-            <a href="alltr.html" class="new-comic-card new-more-card">
-                <div class="more-icon">›</div>
-                <p>Xem thêm</p>
+            <a
+                href="alltr.html"
+                class="new-comic-card new-more-card"
+            >
+
+                <div class="more-icon">
+                    ›
+                </div>
+
+                <p>
+                    Xem thêm
+                </p>
+
             </a>
+
         `;
+
         return;
+
     }
+
+
+    /* =========================
+       HIỂN THỊ TRUYỆN
+    ========================= */
 
     displayMangas.forEach(function(manga){
-        var comic = document.createElement("a");
 
-        comic.className = "new-comic-card";
-        comic.href = "TD.html?id=" + manga.id;
+        var comic =
+            document.createElement("a");
 
-        var timeText = getTimeAgo(manga.updatedAt || manga.updated_at || manga.latestChapterCreatedAt || manga.created_at) || "NEW";
+
+        comic.className =
+            "new-comic-card";
+
+
+        comic.href =
+            "TD.html?id=" + manga.id;
+
+
+        var updateTime =
+            manga.latestChapterCreatedAt ||
+            manga.updatedAt ||
+            manga.created_at;
+
+
+        var timeText =
+            getTimeAgo(updateTime) ||
+            "NEW";
+
 
         comic.innerHTML = `
+
             <div class="new-comic-cover">
-                ${timeText ? `<div class="time-badge">${timeText}</div>` : ""}
-                <img src="${manga.cover || "Image/no-image.png"}" alt="${manga.title || "Không tên"}">
+
+                ${
+                    timeText
+                        ? `
+                            <div class="time-badge">
+                                ${timeText}
+                            </div>
+                          `
+                        : ""
+                }
+
+                <img
+                    src="${
+                        manga.cover ||
+                        "Image/no-image.png"
+                    }"
+                    alt="${
+                        manga.title ||
+                        "Không tên"
+                    }"
+                    onerror="
+                        this.src='Image/no-image.png'
+                    "
+                >
+
             </div>
 
-            <h3 class="new-comic-title">${manga.title || "Không tên"}</h3>
+
+            <h3 class="new-comic-title">
+                ${
+                    manga.title ||
+                    "Không tên"
+                }
+            </h3>
+
 
             <div class="new-comic-bottom">
-                <span>Ch.${getChapterNumber(manga)}</span>
+
+                <span>
+                    Ch.${getChapterNumber(manga)}
+                </span>
+
 
                 <span class="new-comic-view">
-                    <img src="Image/eye.svg" alt="">
-                    ${getViewNumber(manga)}
+
+                    <img
+                        src="Image/eye.svg"
+                        alt=""
+                    >
+
+                    ${
+                        getViewNumber(manga)
+                    }
+
                 </span>
+
             </div>
+
         `;
+
 
         comic.onclick = function(){
-            localStorage.setItem("currentMangaId", manga.id);
+
+            localStorage.setItem(
+                "currentMangaId",
+                manga.id
+            );
+
         };
 
+
         comicList.appendChild(comic);
+
     });
+
+
+    /* =========================
+       XEM THÊM
+    ========================= */
 
     comicList.innerHTML += `
-        <a href="alltr.html" class="new-comic-card new-more-card">
-            <div class="more-icon">›</div>
-            <p>Xem thêm</p>
-        </a>
-    `;
-}
-/* TRUYEN SAP RA MAT */
-function renderComingMangas(){
-    if(!comingList) return;
 
-    var upcomingMangas = mangas.filter(function(manga){
-        return getChapterNumber(manga) === 0;
-    });
+        <a
+            href="alltr.html"
+            class="new-comic-card new-more-card"
+        >
+
+            <div class="more-icon">
+                ›
+            </div>
+
+            <p>
+                Xem thêm
+            </p>
+
+        </a>
+
+    `;
+
+}
+
+
+/* =========================
+   TRUYỆN SẮP RA MẮT
+========================= */
+
+function renderComingMangas(){
+
+    if(!comingList){
+
+        return;
+
+    }
+
+
+    var upcomingMangas =
+        mangas.filter(function(manga){
+
+            return getChapterNumber(manga) === 0;
+
+        });
+
 
     upcomingMangas.sort(function(a, b){
-        return Number(b.id) - Number(a.id);
+
+        return Number(b.id) -
+               Number(a.id);
+
     });
+
 
     if(upcomingMangas.length === 0){
-        comingList.innerHTML = "<p>Chưa có truyện sắp ra mắt</p>";
+
+        comingList.innerHTML =
+            "<p>Chưa có truyện sắp ra mắt</p>";
+
         return;
+
     }
 
-    comingList.innerHTML = upcomingMangas.map(function(manga){
-        return `
-            <div class="coming-item" onclick="openMangaUser(${manga.id})">
-                <img src="${manga.cover || "Image/no-image.png"}" alt="">
-                <h3>${manga.title || "Không tên"}</h3>
-                <p>
-                    <img class="bookmark" src="Image/bookmark.svg" alt="">
-                    ${manga.follows || 0}
-                </p>
-            </div>
-        `;
-    }).join("");
+
+    comingList.innerHTML =
+        upcomingMangas.map(function(manga){
+
+            return `
+
+                <div
+                    class="coming-item"
+                    onclick="
+                        openMangaUser(${manga.id})
+                    "
+                >
+
+                    <img
+                        src="${
+                            manga.cover ||
+                            "Image/no-image.png"
+                        }"
+                        alt=""
+                    >
+
+                    <h3>
+                        ${
+                            manga.title ||
+                            "Không tên"
+                        }
+                    </h3>
+
+                    <p>
+
+                        <img
+                            class="bookmark"
+                            src="Image/bookmark.svg"
+                            alt=""
+                        >
+
+                        ${
+                            manga.follows ||
+                            0
+                        }
+
+                    </p>
+
+                </div>
+
+            `;
+
+        }).join("");
+
 }
 
-/* BANG XEP HANG */
+
+/* =========================
+   BẢNG XẾP HẠNG
+========================= */
+
 function renderRanking(){
-    var rankList = document.getElementById("rankList");
 
-    if(!rankList) return;
+    var rankList =
+        document.getElementById(
+            "rankList"
+        );
 
-    var ranking = mangas.filter(function(manga){
-        return getChapterNumber(manga) > 0;
-    });
+
+    if(!rankList){
+
+        return;
+
+    }
+
+
+    var ranking =
+        mangas.filter(function(manga){
+
+            return getChapterNumber(manga) > 0;
+
+        });
+
 
     ranking.sort(function(a, b){
-        return getViewNumber(b) - getViewNumber(a);
+
+        return getViewNumber(b) -
+               getViewNumber(a);
+
     });
 
-    ranking = ranking.slice(0, 10);
+
+    ranking =
+        ranking.slice(0, 10);
+
 
     if(ranking.length === 0){
-        rankList.innerHTML = "<p>Chưa có truyện xếp hạng</p>";
+
+        rankList.innerHTML =
+            "<p>Chưa có truyện xếp hạng</p>";
+
         return;
+
     }
 
-    rankList.innerHTML = ranking.map(function(manga, index){
-        return `
-            <div class="rank-card" onclick="openMangaUser(${manga.id})">
-                <div class="rank-stt">${index + 1}</div>
 
-                <img class="rank-cover-img" src="${manga.cover || 'Image/LOGO WEB.png'}" alt="">
+    rankList.innerHTML =
+        ranking.map(function(
+            manga,
+            index
+        ){
 
-                <div class="rank-text">
-                    <h3>${manga.title || "Không tên"}</h3>
+            return `
 
-                    <div class="rank-row">
-                        <span class="rank-chap">Ch.${getChapterNumber(manga)}</span>
+                <div
+                    class="rank-card"
+                    onclick="
+                        openMangaUser(${manga.id})
+                    "
+                >
 
-                        <span class="rank-eye">
-                            <img src="Image/eye.svg" alt="">
-                            ${getViewNumber(manga)}
-                        </span>
+                    <div class="rank-stt">
+                        ${index + 1}
                     </div>
-                </div>
-            </div>
-        `;
-    }).join("");
-}
-/* BANNER */
-function setupBanner(){
-    var bannerImg = document.getElementById("bannerImg");
-    var bannerTitle = document.getElementById("bannerTitle");
-    var bannerBtn = document.getElementById("bannerBtn");
-    var prevBanner = document.getElementById("prevBanner");
-    var nextBanner = document.getElementById("nextBanner");
 
-    var bannerList = mangas.filter(function(manga){
-        return manga.cover;
-    }).slice(0, 10);
+
+                    <img
+                        class="rank-cover-img"
+                        src="${
+                            manga.cover ||
+                            "Image/LOGO WEB.png"
+                        }"
+                        alt=""
+                    >
+
+
+                    <div class="rank-text">
+
+                        <h3>
+                            ${
+                                manga.title ||
+                                "Không tên"
+                            }
+                        </h3>
+
+
+                        <div class="rank-row">
+
+                            <span
+                                class="rank-chap"
+                            >
+                                Ch.${
+                                    getChapterNumber(
+                                        manga
+                                    )
+                                }
+                            </span>
+
+
+                            <span
+                                class="rank-eye"
+                            >
+
+                                <img
+                                    src="Image/eye.svg"
+                                    alt=""
+                                >
+
+                                ${
+                                    getViewNumber(
+                                        manga
+                                    )
+                                }
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* =========================
+   BANNER
+========================= */
+
+function setupBanner(){
+
+    var bannerImg =
+        document.getElementById(
+            "bannerImg"
+        );
+
+    var bannerTitle =
+        document.getElementById(
+            "bannerTitle"
+        );
+
+    var bannerBtn =
+        document.getElementById(
+            "bannerBtn"
+        );
+
+    var prevBanner =
+        document.getElementById(
+            "prevBanner"
+        );
+
+    var nextBanner =
+        document.getElementById(
+            "nextBanner"
+        );
+
+
+    var bannerList =
+        mangas.filter(function(manga){
+
+            return manga.cover;
+
+        }).slice(0, 10);
+
 
     var currentBanner = 0;
 
-    function showBanner(index){
-        if(!bannerImg || bannerList.length === 0) return;
 
-        bannerImg.classList.add("slide-out");
+    function showBanner(index){
+
+        if(
+            !bannerImg ||
+            bannerList.length === 0
+        ){
+
+            return;
+
+        }
+
+
+        bannerImg.classList.add(
+            "slide-out"
+        );
+
 
         setTimeout(function(){
+
             if(index < 0){
-                currentBanner = bannerList.length - 1;
-            }else if(index >= bannerList.length){
+
+                currentBanner =
+                    bannerList.length - 1;
+
+            }else if(
+                index >= bannerList.length
+            ){
+
                 currentBanner = 0;
+
             }else{
+
                 currentBanner = index;
+
             }
 
-            var manga = bannerList[currentBanner];
 
-            bannerImg.src = manga.cover || "Image/6.jpg";
-            bannerTitle.innerText = manga.title || "Không tên";
+            var manga =
+                bannerList[currentBanner];
+
+
+            bannerImg.src =
+                manga.cover ||
+                "Image/6.jpg";
+
+
+            bannerTitle.innerText =
+                manga.title ||
+                "Không tên";
+
 
             if(bannerBtn){
-                bannerBtn.onclick = function(e){
-                    e.preventDefault();
-                    openMangaUser(manga.id);
-                };
+
+                bannerBtn.onclick =
+                    function(e){
+
+                        e.preventDefault();
+
+                        openMangaUser(
+                            manga.id
+                        );
+
+                    };
+
             }
 
-            bannerImg.classList.remove("slide-out");
+
+            bannerImg.classList.remove(
+                "slide-out"
+            );
+
         }, 300);
+
     }
+
 
     if(bannerList.length > 0){
+
         showBanner(0);
 
+
         setInterval(function(){
-            showBanner(currentBanner + 1);
+
+            showBanner(
+                currentBanner + 1
+            );
+
         }, 5500);
+
     }
+
 
     if(prevBanner){
-        prevBanner.onclick = function(){
-            showBanner(currentBanner - 1);
-        };
+
+        prevBanner.onclick =
+            function(){
+
+                showBanner(
+                    currentBanner - 1
+                );
+
+            };
+
     }
+
 
     if(nextBanner){
-        nextBanner.onclick = function(){
-            showBanner(currentBanner + 1);
-        };
+
+        nextBanner.onclick =
+            function(){
+
+                showBanner(
+                    currentBanner + 1
+                );
+
+            };
+
     }
+
 }
 
-/* LICH SU DOC */
-function renderHistory(){
-    var historyList = document.getElementById("historyList");
 
-    if(!historyList) return;
+/* =========================
+   LỊCH SỬ ĐỌC
+========================= */
+
+function renderHistory(){
+
+    var historyList =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    if(!historyList){
+
+        return;
+
+    }
+
 
     var history = [];
 
+
     try{
-        history = JSON.parse(localStorage.getItem("readingHistory")) || [];
+
+        history =
+            JSON.parse(
+                localStorage.getItem(
+                    "readingHistory"
+                )
+            ) || [];
+
     }catch(e){
+
         history = [];
+
     }
 
-    historyList.classList.add("history-grid");
+
+    historyList.classList.add(
+        "history-grid"
+    );
+
+
     historyList.innerHTML = "";
 
+
     if(history.length === 0){
-        historyList.innerHTML = `<p class="history-empty">Chưa có lịch sử đọc</p>`;
+
+        historyList.innerHTML =
+            `<p class="history-empty">
+                Chưa có lịch sử đọc
+             </p>`;
+
         return;
+
     }
 
-    history.slice(0, 10).forEach(function(id){
-        var manga = mangas.find(function(item){
-            return Number(item.id) === Number(id);
+
+    history
+        .slice(0, 10)
+        .forEach(function(id){
+
+            var manga =
+                mangas.find(function(item){
+
+                    return Number(item.id) ===
+                           Number(id);
+
+                });
+
+
+            if(!manga){
+
+                return;
+
+            }
+
+
+            var card =
+                document.createElement("div");
+
+
+            card.className =
+                "history-card";
+
+
+            card.onclick =
+                function(){
+
+                    openMangaUser(
+                        manga.id
+                    );
+
+                };
+
+
+            card.innerHTML = `
+
+                <div class="history-cover">
+
+                    <img
+                        src="${
+                            manga.cover ||
+                            "Image/no-image.png"
+                        }"
+                        alt="${
+                            manga.title ||
+                            "Không tên"
+                        }"
+                        onerror="
+                            this.src='Image/no-image.png'
+                        "
+                    >
+
+                </div>
+
+
+                <h3 class="history-title">
+
+                    ${
+                        manga.title ||
+                        "Không tên"
+                    }
+
+                </h3>
+
+
+                <div class="history-bottom">
+
+                    <span>
+                        Chap ${
+                            getChapterNumber(
+                                manga
+                            )
+                        }
+                    </span>
+
+                </div>
+
+            `;
+
+
+            historyList.appendChild(card);
+
         });
 
-        if(!manga) return;
 
-        var card = document.createElement("div");
-        card.className = "history-card";
+    if(
+        historyList.innerHTML.trim() === ""
+    ){
 
-        card.onclick = function(){
-            openMangaUser(manga.id);
-        };
+        historyList.innerHTML =
+            `<p class="history-empty">
+                Chưa có lịch sử đọc
+             </p>`;
 
-        card.innerHTML = `
-            <div class="history-cover">
-                <img 
-                    src="${manga.cover || 'Image/no-image.png'}" 
-                    alt="${manga.title || 'Không tên'}"
-                    onerror="this.src='Image/no-image.png'"
-                >
-            </div>
-
-            <h3 class="history-title">${manga.title || "Không tên"}</h3>
-
-            <div class="history-bottom">
-                <span>Chap ${getChapterNumber(manga)}</span>
-            </div>
-        `;
-
-        historyList.appendChild(card);
-    });
-
-    if(historyList.innerHTML.trim() === ""){
-        historyList.innerHTML = `<p class="history-empty">Chưa có lịch sử đọc</p>`;
     }
+
 }
 
-/* CHAY */
+
+/* =========================
+   CHẠY
+========================= */
+
+loadDataFromSupabase();
 var fixNewComicStyle = document.createElement("style");
 fixNewComicStyle.innerHTML = `
 @media screen and (min-width:769px){
