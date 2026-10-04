@@ -382,21 +382,11 @@ mangas =
 
 function getChapterNumber(manga){
 
-    /* =========================
-       ƯU TIÊN latest_chapter
-    ========================= */
+    var maxChapter = 0;
 
-    var latestFromDatabase =
-        Number(
-            manga.latest_chapter ??
-            manga.latestChapter ??
-            0
-        );
-
-    var maxFromChapters = 0;
 
     /* =========================
-       KIỂM TRA CHAPTERS
+       CHAPTERS LÀ NGUỒN CHÍNH
     ========================= */
 
     if(
@@ -404,30 +394,43 @@ function getChapterNumber(manga){
         manga.chapters.length > 0
     ){
 
-        manga.chapters.forEach(function(chapter){
+        manga.chapters.forEach(
+            function(chapter){
 
-            var num =
-                Number(chapter.number) || 0;
+                var num =
+                    Number(
+                        chapter.number
+                    ) || 0;
 
-            if(num > maxFromChapters){
 
-                maxFromChapters = num;
+                if(num > maxChapter){
+
+                    maxChapter = num;
+
+                }
 
             }
-
-        });
+        );
 
     }
 
+
     /* =========================
-       LẤY SỐ LỚN NHẤT
-       GIỮA 2 NGUỒN
+       NẾU CHƯA CÓ CHAPTER
+       MỚI DÙNG latest_chapter
     ========================= */
 
-    return Math.max(
-        latestFromDatabase,
-        maxFromChapters
-    );
+    if(maxChapter === 0){
+
+        maxChapter =
+            Number(
+                manga.latest_chapter
+            ) || 0;
+
+    }
+
+
+    return maxChapter;
 
 }
 
@@ -696,9 +699,9 @@ function renderUpdatedMangas(){
 
 
             var updateTime =
-				manga.updated_at ||
-				manga.updatedAt ||
 				manga.latestChapterCreatedAt ||
+				manga.updatedAt ||
+				manga.updated_at ||
 				manga.created_at;
 
 
