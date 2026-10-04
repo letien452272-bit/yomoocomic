@@ -95,6 +95,124 @@ var mangas = [];
 
 
 /* =========================
+   HÀM LẤY THỜI GIAN CHAPTER
+========================= */
+
+function getChapterDate(chapter){
+
+    if(!chapter){
+        return 0;
+    }
+
+    var dateValue =
+        chapter.created_at ||
+        chapter.updated_at ||
+        chapter.published_at ||
+        chapter.createdAt ||
+        chapter.updatedAt ||
+        "";
+
+    if(!dateValue){
+        return 0;
+    }
+
+    var time =
+        new Date(dateValue).getTime();
+
+    return isNaN(time)
+        ? 0
+        : time;
+
+}
+
+
+/* =========================
+   HÀM TÌM CHAPTER MỚI NHẤT
+========================= */
+
+function getLatestChapter(chapters){
+
+    if(!Array.isArray(chapters) || chapters.length === 0){
+        return null;
+    }
+
+
+    var validChapters =
+        chapters.filter(function(chapter){
+
+            return chapter &&
+                (
+                    chapter.number !== undefined ||
+                    chapter.created_at ||
+                    chapter.updated_at ||
+                    chapter.published_at ||
+                    chapter.id !== undefined
+                );
+
+        });
+
+
+    if(validChapters.length === 0){
+        return null;
+    }
+
+
+    validChapters.sort(function(a, b){
+
+        var timeA =
+            getChapterDate(a);
+
+        var timeB =
+            getChapterDate(b);
+
+
+        /* =========================
+           ƯU TIÊN THỜI GIAN UP CHAPTER
+        ========================= */
+
+        if(timeA !== timeB){
+            return timeB - timeA;
+        }
+
+
+        /* =========================
+           NẾU CÙNG THỜI GIAN
+           SO SÁNH SỐ CHAPTER
+        ========================= */
+
+        var numberA =
+            Number(a.number) || 0;
+
+        var numberB =
+            Number(b.number) || 0;
+
+        if(numberA !== numberB){
+            return numberB - numberA;
+        }
+
+
+        /* =========================
+           NẾU VẪN BẰNG NHAU
+           SO SÁNH ID
+        ========================= */
+
+        var idA =
+            Number(a.id) || 0;
+
+        var idB =
+            Number(b.id) || 0;
+
+        return idB - idA;
+
+    });
+
+
+    return validChapters[0];
+
+}
+
+
+/* =========================
    TẢI DỮ LIỆU SUPABASE
 ========================= */
 
@@ -177,181 +295,193 @@ async function loadDataFromSupabase(){
         chapters.length
     );
 
+
     /* =========================
-   XỬ LÝ TỪNG TRUYỆN
-========================= */
+       XỬ LÝ TỪNG TRUYỆN
+    ========================= */
 
-mangas =
-    (mangaResult.data || []).map(
-        function(manga){
-
-            /* =========================
-               LẤY CHAPTER CỦA TRUYỆN NÀY
-            ========================= */
-
-            var mangaChapters =
-                chapters.filter(
-                    function(chapter){
-
-                        return Number(chapter.manga_id) ===
-                            Number(manga.id);
-
-                    }
-                );
-
-
-            manga.chapters =
-                mangaChapters;
-
-
-            /* =========================
-               CÓ CHAPTER
-            ========================= */
-
-            if(mangaChapters.length > 0){
-
-                manga.releaseStatus =
-                    "released";
-
+    mangas =
+        (mangaResult.data || []).map(
+            function(manga){
 
                 /* =========================
-                   TÌM CHAPTER LỚN NHẤT
+                   LẤY CHAPTER CỦA TRUYỆN NÀY
                 ========================= */
 
-                var latestChapter =
-                    mangaChapters.reduce(
-                        function(latest, chapter){
+                var mangaChapters =
+                    chapters.filter(
+                        function(chapter){
 
-                            var currentNumber =
-                                Number(
-                                    chapter.number
-                                ) || 0;
-
-
-                            var latestNumber =
-                                Number(
-                                    latest.number
-                                ) || 0;
-
-
-                            return currentNumber >
-                                latestNumber
-                                ? chapter
-                                : latest;
+                            return Number(
+                                chapter.manga_id
+                            ) ===
+                            Number(
+                                manga.id
+                            );
 
                         }
                     );
 
 
-                /* =========================
-                   SỐ CHAPTER MỚI NHẤT
-                ========================= */
-
-                manga.latestChapter =
-                    Number(
-                        latestChapter.number
-                    ) || 0;
+                manga.chapters =
+                    mangaChapters;
 
 
                 /* =========================
-                   NGÀY CHAPTER MỚI NHẤT
+                   CÓ CHAPTER
                 ========================= */
 
-                manga.latestChapterCreatedAt =
-                    latestChapter.created_at ||
-                    "";
+                if(mangaChapters.length > 0){
+
+                    manga.releaseStatus =
+                        "released";
+
+
+                    /* =========================
+                       TÌM CHAPTER VỪA CẬP NHẬT
+                    ========================= */
+
+                    var latestChapter =
+                        getLatestChapter(
+                            mangaChapters
+                        );
+
+
+                    if(latestChapter){
+
+                        /* =========================
+                           SỐ CHAPTER MỚI NHẤT
+                        ========================= */
+
+                        manga.latestChapter =
+                            Number(
+                                latestChapter.number
+                            ) || 0;
+
+
+                        /* =========================
+                           THỜI GIAN CHAPTER MỚI NHẤT
+                        ========================= */
+
+                        manga.latestChapterCreatedAt =
+                            latestChapter.created_at ||
+                            latestChapter.updated_at ||
+                            latestChapter.published_at ||
+                            latestChapter.createdAt ||
+                            latestChapter.updatedAt ||
+                            "";
+
+
+                        /* =========================
+                           THỜI GIAN UPDATE TRUYỆN
+                        ========================= */
+
+                        manga.updatedAt =
+                            manga.latestChapterCreatedAt ||
+                            manga.updated_at ||
+                            manga.created_at ||
+                            "";
+
+
+                        console.log(
+                            "===== CW MANGA ====="
+                        );
+
+
+                        console.log(
+                            "Tên:",
+                            manga.title
+                        );
+
+
+                        console.log(
+                            "ID:",
+                            manga.id
+                        );
+
+
+                        console.log(
+                            "Tổng chapter:",
+                            mangaChapters.length
+                        );
+
+
+                        console.log(
+                            "Chapter mới nhất:",
+                            latestChapter.number
+                        );
+
+
+                        console.log(
+                            "Chapter ID:",
+                            latestChapter.id
+                        );
+
+
+                        console.log(
+                            "Chapter created_at:",
+                            latestChapter.created_at
+                        );
+
+
+                        console.log(
+                            "Chapter updated_at:",
+                            latestChapter.updated_at
+                        );
+
+
+                        console.log(
+                            "updatedAt:",
+                            manga.updatedAt
+                        );
+
+                    }
+
+                }
 
 
                 /* =========================
-                   THỜI GIAN CẬP NHẬT
+                   CHƯA CÓ CHAPTER
                 ========================= */
 
-                manga.updatedAt =
-                    latestChapter.created_at ||
-                    manga.updated_at ||
-                    manga.created_at ||
-                    "";
+                else{
+
+                    manga.releaseStatus =
+                        "upcoming";
+
+
+                    manga.latestChapter =
+                        Number(
+                            manga.latest_chapter
+                        ) || 0;
+
+
+                    manga.latestChapterCreatedAt =
+                        "";
+
+
+                    manga.updatedAt =
+                        manga.updated_at ||
+                        manga.created_at ||
+                        "";
+
+                }
 
 
                 console.log(
-                    "===== CW MANGA ====="
-                );
-
-
-                console.log(
-                    "Tên:",
-                    manga.title
-                );
-
-
-                console.log(
-                    "ID:",
-                    manga.id
-                );
-
-
-                console.log(
-                    "Số chapter:",
-                    manga.latestChapter
-                );
-
-
-                console.log(
-                    "Chapter created_at:",
-                    manga.latestChapterCreatedAt
-                );
-
-
-                console.log(
-                    "updatedAt:",
+                    "CW:",
+                    manga.title,
+                    "| Chap:",
+                    manga.latestChapter,
+                    "| Ngày:",
                     manga.updatedAt
                 );
 
-            }
 
-
-            /* =========================
-               CHƯA CÓ CHAPTER
-            ========================= */
-
-            else{
-
-                manga.releaseStatus =
-                    "upcoming";
-
-
-                manga.latestChapter =
-                    Number(
-                        manga.latest_chapter
-                    ) || 0;
-
-
-                manga.latestChapterCreatedAt =
-                    "";
-
-
-                manga.updatedAt =
-                    manga.updated_at ||
-                    manga.created_at ||
-                    "";
+                return manga;
 
             }
-
-
-            console.log(
-                "CW:",
-                manga.title,
-                "| Chap:",
-                manga.latestChapter,
-                "| Ngày:",
-                manga.updatedAt
-            );
-
-
-            return manga;
-
-        }
-    );
+        );
 
 
     /* =========================
@@ -577,7 +707,9 @@ function renderUpdatedMangas(){
     comicList.innerHTML = "";
 
 
-    /* Chỉ lấy truyện đã có chapter */
+    /* =========================
+       CHỈ LẤY TRUYỆN ĐÃ CÓ CHAPTER
+    ========================= */
 
     var releasedMangas =
         mangas.filter(
@@ -590,29 +722,41 @@ function renderUpdatedMangas(){
 
 
     /* =========================
-       SẮP XẾP THEO CHAPTER
-       MỚI NHẤT VỪA UP
+       SẮP XẾP THEO THỜI GIAN CHAPTER
+       VỪA ĐƯỢC UP
     ========================= */
 
     releasedMangas.sort(
         function(a, b){
 
             var timeA =
-				new Date(
-					a.updated_at ||
-					a.updatedAt ||
-					a.created_at ||
-					0
-				).getTime() || 0;
+                new Date(
+                    a.latestChapterCreatedAt ||
+                    a.updatedAt ||
+                    a.updated_at ||
+                    a.created_at ||
+                    0
+                ).getTime();
 
 
-			var timeB =
-				new Date(
-					b.updated_at ||
-					b.updatedAt ||
-					b.created_at ||
-					0
-				).getTime() || 0;
+            var timeB =
+                new Date(
+                    b.latestChapterCreatedAt ||
+                    b.updatedAt ||
+                    b.updated_at ||
+                    b.created_at ||
+                    0
+                ).getTime();
+
+
+            if(isNaN(timeA)){
+                timeA = 0;
+            }
+
+
+            if(isNaN(timeB)){
+                timeB = 0;
+            }
 
 
             return timeB - timeA;
@@ -639,7 +783,6 @@ function renderUpdatedMangas(){
     ========================= */
 
     if(displayMangas.length === 0){
-
 
         comicList.innerHTML = `
 
@@ -699,10 +842,10 @@ function renderUpdatedMangas(){
 
 
             var updateTime =
-				manga.latestChapterCreatedAt ||
-				manga.updatedAt ||
-				manga.updated_at ||
-				manga.created_at;
+                manga.latestChapterCreatedAt ||
+                manga.updatedAt ||
+                manga.updated_at ||
+                manga.created_at;
 
 
             var timeText =
@@ -1461,6 +1604,7 @@ fixNewComicStyle.innerHTML = `
     #comicList .new-comic-cover{
 
         width:134px !important;
+
         height:190px !important;
 
         border-radius:6px !important;
@@ -1475,6 +1619,7 @@ fixNewComicStyle.innerHTML = `
     #comicList .new-comic-cover img{
 
         width:100% !important;
+
         height:100% !important;
 
         object-fit:cover !important;
