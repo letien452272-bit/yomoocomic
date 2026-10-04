@@ -311,7 +311,10 @@ async function loadDataFromSupabase(){
                     ){
 
                         manga.updatedAt =
-                            latestChapter.created_at;
+						manga.updated_at ||
+						latestChapter.created_at ||
+						manga.created_at ||
+						"";
 
                     }else{
 
@@ -601,21 +604,21 @@ function renderUpdatedMangas(){
         function(a, b){
 
             var timeA =
-                new Date(
-                    a.latestChapterCreatedAt ||
-                    a.updatedAt ||
-                    a.created_at ||
-                    0
-                ).getTime() || 0;
+				new Date(
+					a.updatedAt ||
+					a.latestChapterCreatedAt ||
+					a.created_at ||
+					0
+				).getTime() || 0;
 
 
             var timeB =
-                new Date(
-                    b.latestChapterCreatedAt ||
-                    b.updatedAt ||
-                    b.created_at ||
-                    0
-                ).getTime() || 0;
+				new Date(
+					a.updatedAt ||
+					a.latestChapterCreatedAt ||
+					a.created_at ||
+					0
+				).getTime() || 0;
 
 
             return timeB - timeA;
@@ -642,6 +645,7 @@ function renderUpdatedMangas(){
     ========================= */
 
     if(displayMangas.length === 0){
+
 
         comicList.innerHTML = `
 
