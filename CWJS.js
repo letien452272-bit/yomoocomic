@@ -14,7 +14,44 @@ if(genreBtn && genreDropdown && genreMenu && genreArrow){
         e.stopPropagation();
 
         genreDropdown.classList.toggle("show");
-        genreArrow.src = genreDropdown.classList.contains("show")
+        genreArrow.src = genreDropdown.classList.contains("show")if(mangaChapters.length > 0){
+
+    manga.releaseStatus = "released";
+
+    // Lấy chapter có số lớn nhất
+    manga.latestChapter = Math.max.apply(null, mangaChapters.map(function(chapter){
+        return Number(chapter.number) || 0;
+    }));
+
+    // Lấy thời gian tạo chapter mới nhất
+    var latestChapter = mangaChapters.reduce(function(latest, chapter){
+
+        if(!latest){
+            return chapter;
+        }
+
+        var latestTime = new Date(latest.created_at || 0).getTime();
+        var chapterTime = new Date(chapter.created_at || 0).getTime();
+
+        return chapterTime > latestTime ? chapter : latest;
+
+    }, null);
+
+    // QUAN TRỌNG:
+    // CW dùng thời gian chapter mới nhất,
+    // không dùng mangas.updated_at nữa.
+    manga.updatedAt =
+        latestChapter && latestChapter.created_at
+            ? latestChapter.created_at
+            : manga.created_at;
+
+}else{
+
+    manga.releaseStatus = "upcoming";
+    manga.latestChapter = 0;
+
+    manga.updatedAt = manga.created_at;
+}
             ? "Image/angle-small-up.svg"
             : "Image/angle-small-down.svg";
     };
