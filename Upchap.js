@@ -647,13 +647,13 @@ saveChapterBtn.onclick = async function(){
        ========================================= */
 
     var latestChapterResult =
-        await supabase
-            .from("mangas")
-            .update({
-                latest_chapter:
-                    String(number)
-            })
-            .eq("id", mangaId);
+    await supabase
+        .from("mangas")
+        .update({
+            latest_chapter: String(number),
+            updated_at: new Date().toISOString()
+        })
+        .eq("id", mangaId);
 
     if(latestChapterResult.error){
 
