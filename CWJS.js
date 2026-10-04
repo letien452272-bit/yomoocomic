@@ -2,94 +2,94 @@ if(typeof updateUserMenu === "function"){
     updateUserMenu();
 }
 
-/* MENU THE LOAI */
+
+/* =========================
+   MENU THE LOAI
+========================= */
+
 var genreBtn = document.getElementById("genre-btn");
 var genreDropdown = document.getElementById("genre-dropdown");
 var genreMenu = document.getElementById("genre-menu");
 var genreArrow = document.getElementById("genre-arrow");
 
 if(genreBtn && genreDropdown && genreMenu && genreArrow){
+
     genreBtn.onclick = function(e){
+
         e.preventDefault();
         e.stopPropagation();
 
         genreDropdown.classList.toggle("show");
-        genreArrow.src = genreDropdown.classList.contains("show")if(mangaChapters.length > 0){
 
-    manga.releaseStatus = "released";
+        genreArrow.src =
+            genreDropdown.classList.contains("show")
+                ? "Image/angle-small-up.svg"
+                : "Image/angle-small-down.svg";
 
-    // Lấy chapter có số lớn nhất
-    manga.latestChapter = Math.max.apply(null, mangaChapters.map(function(chapter){
-        return Number(chapter.number) || 0;
-    }));
-
-    // Lấy thời gian tạo chapter mới nhất
-    var latestChapter = mangaChapters.reduce(function(latest, chapter){
-
-        if(!latest){
-            return chapter;
-        }
-
-        var latestTime = new Date(latest.created_at || 0).getTime();
-        var chapterTime = new Date(chapter.created_at || 0).getTime();
-
-        return chapterTime > latestTime ? chapter : latest;
-
-    }, null);
-
-    // QUAN TRỌNG:
-    // CW dùng thời gian chapter mới nhất,
-    // không dùng mangas.updated_at nữa.
-    manga.updatedAt =
-        latestChapter && latestChapter.created_at
-            ? latestChapter.created_at
-            : manga.created_at;
-
-}else{
-
-    manga.releaseStatus = "upcoming";
-    manga.latestChapter = 0;
-
-    manga.updatedAt = manga.created_at;
-}
-            ? "Image/angle-small-up.svg"
-            : "Image/angle-small-down.svg";
     };
 
+
     document.addEventListener("click", function(e){
+
         if(!genreMenu.contains(e.target)){
+
             genreDropdown.classList.remove("show");
-            genreArrow.src = "Image/angle-small-down.svg";
+
+            genreArrow.src =
+                "Image/angle-small-down.svg";
+
         }
+
     });
+
 }
 
-/* MENU USER */
+
+/* =========================
+   MENU USER
+========================= */
+
 var userBtn = document.getElementById("user-btn");
 var userDropdown = document.getElementById("user-dropdown");
 var userArrow = document.getElementById("user-arrow");
 
 if(userBtn && userDropdown && userArrow){
+
     userBtn.onclick = function(e){
+
         e.preventDefault();
         e.stopPropagation();
 
         userDropdown.classList.toggle("show");
-        userArrow.textContent = userDropdown.classList.contains("show") ? "^" : "v";
+
+        userArrow.textContent =
+            userDropdown.classList.contains("show")
+                ? "^"
+                : "v";
+
     };
 
+
     document.addEventListener("click", function(){
+
         userDropdown.classList.remove("show");
+
         userArrow.textContent = "v";
+
     });
+
 }
+
 
 /* =========================
    DATA
 ========================= */
 
-var comicList = document.getElementById("comicList");
-var comingList = document.getElementById("comingList");
+var comicList =
+    document.getElementById("comicList");
+
+var comingList =
+    document.getElementById("comingList");
 
 var mangas = [];
 
@@ -100,7 +100,10 @@ var mangas = [];
 
 async function loadDataFromSupabase(){
 
-    console.log("===== BẮT ĐẦU TẢI DỮ LIỆU CW =====");
+    console.log(
+        "===== BẮT ĐẦU TẢI DỮ LIỆU CW ====="
+    );
+
 
     /* =========================
        LẤY MANGAS
@@ -112,6 +115,7 @@ async function loadDataFromSupabase(){
         .order("id", {
             ascending: false
         });
+
 
     if(mangaResult.error){
 
@@ -126,6 +130,7 @@ async function loadDataFromSupabase(){
         );
 
         return;
+
     }
 
 
@@ -136,6 +141,7 @@ async function loadDataFromSupabase(){
     var chapterResult = await supabase
         .from("chapters")
         .select("*");
+
 
     if(chapterResult.error){
 
@@ -150,16 +156,21 @@ async function loadDataFromSupabase(){
         );
 
         return;
+
     }
 
 
-    var chapters = chapterResult.data || [];
+    var chapters =
+        chapterResult.data || [];
 
 
     console.log(
         "Tổng số truyện:",
-        mangaResult.data ? mangaResult.data.length : 0
+        mangaResult.data
+            ? mangaResult.data.length
+            : 0
     );
+
 
     console.log(
         "Tổng số chapter:",
@@ -171,157 +182,185 @@ async function loadDataFromSupabase(){
        XỬ LÝ TỪNG TRUYỆN
     ========================= */
 
-    mangas = (mangaResult.data || []).map(function(manga){
+    mangas =
+        (mangaResult.data || []).map(
+            function(manga){
 
-        var mangaChapters = chapters.filter(function(chapter){
+                var mangaChapters =
+                    chapters.filter(
+                        function(chapter){
 
-            return String(chapter.manga_id) ===
-                   String(manga.id);
+                            return String(
+                                chapter.manga_id
+                            ) === String(
+                                manga.id
+                            );
 
-        });
-
-
-        /* =========================
-           SẮP XẾP CHAPTER
-           CHAPTER MỚI NHẤT LÊN ĐẦU
-        ========================= */
-
-        mangaChapters.sort(function(a, b){
-
-            var timeA =
-                new Date(
-                    a.created_at || 0
-                ).getTime() || 0;
-
-            var timeB =
-                new Date(
-                    b.created_at || 0
-                ).getTime() || 0;
+                        }
+                    );
 
 
-            /* Có created_at thì ưu tiên */
-            if(timeA !== timeB){
+                /* =========================
+                   SẮP XẾP CHAPTER
+                   CHAPTER MỚI NHẤT LÊN ĐẦU
+                ========================= */
 
-                return timeB - timeA;
+                mangaChapters.sort(
+                    function(a, b){
 
-            }
-
-
-            /* Nếu thời gian giống nhau
-               thì lấy số chapter */
-
-            return Number(b.number || 0) -
-                   Number(a.number || 0);
-
-        });
+                        var timeA =
+                            new Date(
+                                a.created_at || 0
+                            ).getTime() || 0;
 
 
-        manga.chapters = mangaChapters;
+                        var timeB =
+                            new Date(
+                                b.created_at || 0
+                            ).getTime() || 0;
 
 
-        /* =========================
-           CÓ CHAPTER
-        ========================= */
+                        /* Có created_at thì ưu tiên */
 
-        if(mangaChapters.length > 0){
+                        if(timeA !== timeB){
 
-            manga.releaseStatus = "released";
+                            return timeB - timeA;
+
+                        }
 
 
-            /* =========================
-               TÌM CHAPTER CAO NHẤT
-            ========================= */
+                        /* Nếu thời gian giống nhau
+                           thì lấy số chapter */
 
-            var maxChapter = 0;
+                        return Number(
+                            b.number || 0
+                        ) -
+                        Number(
+                            a.number || 0
+                        );
 
-            mangaChapters.forEach(function(chapter){
+                    }
+                );
 
-                var number =
-                    Number(chapter.number) || 0;
 
-                if(number > maxChapter){
+                manga.chapters =
+                    mangaChapters;
 
-                    maxChapter = number;
+
+                /* =========================
+                   CÓ CHAPTER
+                ========================= */
+
+                if(mangaChapters.length > 0){
+
+                    manga.releaseStatus =
+                        "released";
+
+
+                    /* =========================
+                       TÌM CHAPTER CAO NHẤT
+                    ========================= */
+
+                    var maxChapter = 0;
+
+
+                    mangaChapters.forEach(
+                        function(chapter){
+
+                            var number =
+                                Number(
+                                    chapter.number
+                                ) || 0;
+
+
+                            if(number > maxChapter){
+
+                                maxChapter =
+                                    number;
+
+                            }
+
+                        }
+                    );
+
+
+                    manga.latestChapter =
+                        maxChapter;
+
+
+                    /* =========================
+                       CHAPTER MỚI NHẤT
+                    ========================= */
+
+                    var latestChapter =
+                        mangaChapters[0];
+
+
+                    manga.latestChapterCreatedAt =
+                        latestChapter.created_at || "";
+
+
+                    /* =========================
+                       DÙNG created_at CỦA CHAPTER
+                       MỚI NHẤT
+                    ========================= */
+
+                    if(
+                        latestChapter &&
+                        latestChapter.created_at
+                    ){
+
+                        manga.updatedAt =
+                            latestChapter.created_at;
+
+                    }else{
+
+                        manga.updatedAt =
+                            manga.created_at || "";
+
+                    }
+
+
+                    console.log(
+                        "CW:",
+                        manga.title,
+                        "| Chap:",
+                        manga.latestChapter,
+                        "| Ngày:",
+                        manga.updatedAt
+                    );
 
                 }
 
-            });
+
+                /* =========================
+                   CHƯA CÓ CHAPTER
+                ========================= */
+
+                else{
+
+                    manga.releaseStatus =
+                        "upcoming";
 
 
-            manga.latestChapter = maxChapter;
+                    manga.latestChapter =
+                        0;
 
 
-            /* =========================
-               CHAPTER MỚI NHẤT
-            ========================= */
-
-            var latestChapter =
-                mangaChapters[0];
+                    manga.latestChapterCreatedAt =
+                        "";
 
 
-            manga.latestChapterCreatedAt =
-                latestChapter.created_at || "";
+                    manga.updatedAt =
+                        manga.created_at || "";
+
+                }
 
 
-            /* =========================
-               QUAN TRỌNG
-               
-               KHÔNG DÙNG mangas.updated_at
-               
-               CW LUÔN DÙNG created_at
-               CỦA CHAPTER MỚI NHẤT
-            ========================= */
-
-            if(
-                latestChapter &&
-                latestChapter.created_at
-            ){
-
-                manga.updatedAt =
-                    latestChapter.created_at;
-
-            }else{
-
-                manga.updatedAt =
-                    manga.created_at || "";
+                return manga;
 
             }
-
-
-            console.log(
-                "CW:",
-                manga.title,
-                "| Chap:",
-                manga.latestChapter,
-                "| Ngày:",
-                manga.updatedAt
-            );
-
-        }
-
-
-        /* =========================
-           CHƯA CÓ CHAPTER
-        ========================= */
-
-        else{
-
-            manga.releaseStatus =
-                "upcoming";
-
-            manga.latestChapter = 0;
-
-            manga.latestChapterCreatedAt = "";
-
-            manga.updatedAt =
-                manga.created_at || "";
-
-        }
-
-
-        return manga;
-
-    });
+        );
 
 
     console.log(
@@ -366,19 +405,23 @@ function getChapterNumber(manga){
         var maxChapter = 0;
 
 
-        manga.chapters.forEach(function(chapter){
+        manga.chapters.forEach(
+            function(chapter){
 
-            var num =
-                Number(chapter.number) || 0;
+                var num =
+                    Number(
+                        chapter.number
+                    ) || 0;
 
 
-            if(num > maxChapter){
+                if(num > maxChapter){
 
-                maxChapter = num;
+                    maxChapter = num;
+
+                }
 
             }
-
-        });
+        );
 
 
         return maxChapter;
@@ -423,7 +466,9 @@ function getTimeAgo(dateString){
     }
 
 
-    var now = new Date();
+    var now =
+        new Date();
+
 
     var updateDate =
         new Date(dateString);
@@ -475,7 +520,7 @@ function getTimeAgo(dateString){
     if(hours < 1){
 
         return minutes +
-               " phút trước";
+            " phút trước";
 
     }
 
@@ -483,7 +528,7 @@ function getTimeAgo(dateString){
     if(hours < 24){
 
         return hours +
-               " giờ trước";
+            " giờ trước";
 
     }
 
@@ -491,7 +536,7 @@ function getTimeAgo(dateString){
     if(days < 30){
 
         return days +
-               " ngày trước";
+            " ngày trước";
 
     }
 
@@ -511,6 +556,7 @@ function openMangaUser(id){
         "currentMangaId",
         id
     );
+
 
     window.location.href =
         "TD.html?id=" + id;
@@ -537,41 +583,45 @@ function renderUpdatedMangas(){
     /* Chỉ lấy truyện đã có chapter */
 
     var releasedMangas =
-        mangas.filter(function(manga){
+        mangas.filter(
+            function(manga){
 
-            return getChapterNumber(manga) > 0;
+                return getChapterNumber(manga) > 0;
 
-        });
+            }
+        );
 
 
     /* =========================
        SẮP XẾP THEO CHAPTER
        MỚI NHẤT VỪA UP
-       ========================= */
+    ========================= */
 
-    releasedMangas.sort(function(a, b){
+    releasedMangas.sort(
+        function(a, b){
 
-        var timeA =
-            new Date(
-                a.latestChapterCreatedAt ||
-                a.updatedAt ||
-                a.created_at ||
-                0
-            ).getTime() || 0;
-
-
-        var timeB =
-            new Date(
-                b.latestChapterCreatedAt ||
-                b.updatedAt ||
-                b.created_at ||
-                0
-            ).getTime() || 0;
+            var timeA =
+                new Date(
+                    a.latestChapterCreatedAt ||
+                    a.updatedAt ||
+                    a.created_at ||
+                    0
+                ).getTime() || 0;
 
 
-        return timeB - timeA;
+            var timeB =
+                new Date(
+                    b.latestChapterCreatedAt ||
+                    b.updatedAt ||
+                    b.created_at ||
+                    0
+                ).getTime() || 0;
 
-    });
+
+            return timeB - timeA;
+
+        }
+    );
 
 
     var limitUpdatedMangas =
@@ -606,6 +656,7 @@ function renderUpdatedMangas(){
                 Chưa có truyện mới cập nhật
             </p>
 
+
             <a
                 href="alltr.html"
                 class="new-comic-card new-more-card"
@@ -614,6 +665,7 @@ function renderUpdatedMangas(){
                 <div class="more-icon">
                     ›
                 </div>
+
 
                 <p>
                     Xem thêm
@@ -632,108 +684,118 @@ function renderUpdatedMangas(){
        HIỂN THỊ TRUYỆN
     ========================= */
 
-    displayMangas.forEach(function(manga){
+    displayMangas.forEach(
+        function(manga){
 
-        var comic =
-            document.createElement("a");
-
-
-        comic.className =
-            "new-comic-card";
+            var comic =
+                document.createElement("a");
 
 
-        comic.href =
-            "TD.html?id=" + manga.id;
+            comic.className =
+                "new-comic-card";
 
 
-        var updateTime =
-            manga.latestChapterCreatedAt ||
-            manga.updatedAt ||
-            manga.created_at;
+            comic.href =
+                "TD.html?id=" +
+                manga.id;
 
 
-        var timeText =
-            getTimeAgo(updateTime) ||
-            "NEW";
+            var updateTime =
+                manga.latestChapterCreatedAt ||
+                manga.updatedAt ||
+                manga.created_at;
 
 
-        comic.innerHTML = `
-
-            <div class="new-comic-cover">
-
-                ${
-                    timeText
-                        ? `
-                            <div class="time-badge">
-                                ${timeText}
-                            </div>
-                          `
-                        : ""
-                }
-
-                <img
-                    src="${
-                        manga.cover ||
-                        "Image/no-image.png"
-                    }"
-                    alt="${
-                        manga.title ||
-                        "Không tên"
-                    }"
-                    onerror="
-                        this.src='Image/no-image.png'
-                    "
-                >
-
-            </div>
+            var timeText =
+                getTimeAgo(updateTime) ||
+                "NEW";
 
 
-            <h3 class="new-comic-title">
-                ${
-                    manga.title ||
-                    "Không tên"
-                }
-            </h3>
+            comic.innerHTML = `
 
-
-            <div class="new-comic-bottom">
-
-                <span>
-                    Ch.${getChapterNumber(manga)}
-                </span>
-
-
-                <span class="new-comic-view">
-
-                    <img
-                        src="Image/eye.svg"
-                        alt=""
-                    >
+                <div class="new-comic-cover">
 
                     ${
-                        getViewNumber(manga)
+                        timeText
+                            ? `
+                                <div class="time-badge">
+                                    ${timeText}
+                                </div>
+                              `
+                            : ""
                     }
 
-                </span>
 
-            </div>
+                    <img
+                        src="${
+                            manga.cover ||
+                            "Image/no-image.png"
+                        }"
+                        alt="${
+                            manga.title ||
+                            "Không tên"
+                        }"
+                        onerror="
+                            this.src='Image/no-image.png'
+                        "
+                    >
 
-        `;
+                </div>
 
 
-        comic.onclick = function(){
+                <h3 class="new-comic-title">
 
-            localStorage.setItem(
-                "currentMangaId",
-                manga.id
+                    ${
+                        manga.title ||
+                        "Không tên"
+                    }
+
+                </h3>
+
+
+                <div class="new-comic-bottom">
+
+                    <span>
+                        Ch.${getChapterNumber(manga)}
+                    </span>
+
+
+                    <span class="new-comic-view">
+
+                        <img
+                            src="Image/eye.svg"
+                            alt=""
+                        >
+
+
+                        ${
+                            getViewNumber(manga)
+                        }
+
+                    </span>
+
+                </div>
+
+            `;
+
+
+            comic.onclick =
+                function(){
+
+                    localStorage.setItem(
+                        "currentMangaId",
+                        manga.id
+                    );
+
+                };
+
+
+            comicList.appendChild(
+                comic
             );
 
-        };
-
-
-        comicList.appendChild(comic);
-
-    });
+        }
+    );
 
 
     /* =========================
@@ -750,6 +812,7 @@ function renderUpdatedMangas(){
             <div class="more-icon">
                 ›
             </div>
+
 
             <p>
                 Xem thêm
@@ -776,19 +839,23 @@ function renderComingMangas(){
 
 
     var upcomingMangas =
-        mangas.filter(function(manga){
+        mangas.filter(
+            function(manga){
 
-            return getChapterNumber(manga) === 0;
+                return getChapterNumber(manga) === 0;
 
-        });
+            }
+        );
 
 
-    upcomingMangas.sort(function(a, b){
+    upcomingMangas.sort(
+        function(a, b){
 
-        return Number(b.id) -
-               Number(a.id);
+            return Number(b.id) -
+                Number(a.id);
 
-    });
+        }
+    );
 
 
     if(upcomingMangas.length === 0){
@@ -802,52 +869,57 @@ function renderComingMangas(){
 
 
     comingList.innerHTML =
-        upcomingMangas.map(function(manga){
+        upcomingMangas.map(
+            function(manga){
 
-            return `
+                return `
 
-                <div
-                    class="coming-item"
-                    onclick="
-                        openMangaUser(${manga.id})
-                    "
-                >
-
-                    <img
-                        src="${
-                            manga.cover ||
-                            "Image/no-image.png"
-                        }"
-                        alt=""
+                    <div
+                        class="coming-item"
+                        onclick="
+                            openMangaUser(${manga.id})
+                        "
                     >
 
-                    <h3>
-                        ${
-                            manga.title ||
-                            "Không tên"
-                        }
-                    </h3>
-
-                    <p>
-
                         <img
-                            class="bookmark"
-                            src="Image/bookmark.svg"
+                            src="${
+                                manga.cover ||
+                                "Image/no-image.png"
+                            }"
                             alt=""
                         >
 
-                        ${
-                            manga.follows ||
-                            0
-                        }
 
-                    </p>
+                        <h3>
+                            ${
+                                manga.title ||
+                                "Không tên"
+                            }
+                        </h3>
 
-                </div>
 
-            `;
+                        <p>
 
-        }).join("");
+                            <img
+                                class="bookmark"
+                                src="Image/bookmark.svg"
+                                alt=""
+                            >
+
+
+                            ${
+                                manga.follows ||
+                                0
+                            }
+
+                        </p>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
 
 }
 
@@ -872,19 +944,23 @@ function renderRanking(){
 
 
     var ranking =
-        mangas.filter(function(manga){
+        mangas.filter(
+            function(manga){
 
-            return getChapterNumber(manga) > 0;
+                return getChapterNumber(manga) > 0;
 
-        });
+            }
+        );
 
 
-    ranking.sort(function(a, b){
+    ranking.sort(
+        function(a, b){
 
-        return getViewNumber(b) -
-               getViewNumber(a);
+            return getViewNumber(b) -
+                getViewNumber(a);
 
-    });
+        }
+    );
 
 
     ranking =
@@ -902,84 +978,87 @@ function renderRanking(){
 
 
     rankList.innerHTML =
-        ranking.map(function(
-            manga,
-            index
-        ){
+        ranking.map(
+            function(
+                manga,
+                index
+            ){
 
-            return `
+                return `
 
-                <div
-                    class="rank-card"
-                    onclick="
-                        openMangaUser(${manga.id})
-                    "
-                >
-
-                    <div class="rank-stt">
-                        ${index + 1}
-                    </div>
-
-
-                    <img
-                        class="rank-cover-img"
-                        src="${
-                            manga.cover ||
-                            "Image/LOGO WEB.png"
-                        }"
-                        alt=""
+                    <div
+                        class="rank-card"
+                        onclick="
+                            openMangaUser(${manga.id})
+                        "
                     >
 
-
-                    <div class="rank-text">
-
-                        <h3>
-                            ${
-                                manga.title ||
-                                "Không tên"
-                            }
-                        </h3>
+                        <div class="rank-stt">
+                            ${index + 1}
+                        </div>
 
 
-                        <div class="rank-row">
+                        <img
+                            class="rank-cover-img"
+                            src="${
+                                manga.cover ||
+                                "Image/LOGO WEB.png"
+                            }"
+                            alt=""
+                        >
 
-                            <span
-                                class="rank-chap"
-                            >
-                                Ch.${
-                                    getChapterNumber(
-                                        manga
-                                    )
+
+                        <div class="rank-text">
+
+                            <h3>
+                                ${
+                                    manga.title ||
+                                    "Không tên"
                                 }
-                            </span>
+                            </h3>
 
 
-                            <span
-                                class="rank-eye"
-                            >
+                            <div class="rank-row">
 
-                                <img
-                                    src="Image/eye.svg"
-                                    alt=""
+                                <span
+                                    class="rank-chap"
+                                >
+                                    Ch.${
+                                        getChapterNumber(
+                                            manga
+                                        )
+                                    }
+                                </span>
+
+
+                                <span
+                                    class="rank-eye"
                                 >
 
-                                ${
-                                    getViewNumber(
-                                        manga
-                                    )
-                                }
+                                    <img
+                                        src="Image/eye.svg"
+                                        alt=""
+                                    >
 
-                            </span>
+
+                                    ${
+                                        getViewNumber(
+                                            manga
+                                        )
+                                    }
+
+                                </span>
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                </div>
+                `;
 
-            `;
-
-        }).join("");
+            }
+        ).join("");
 
 }
 
@@ -995,20 +1074,24 @@ function setupBanner(){
             "bannerImg"
         );
 
+
     var bannerTitle =
         document.getElementById(
             "bannerTitle"
         );
+
 
     var bannerBtn =
         document.getElementById(
             "bannerBtn"
         );
 
+
     var prevBanner =
         document.getElementById(
             "prevBanner"
         );
+
 
     var nextBanner =
         document.getElementById(
@@ -1017,11 +1100,13 @@ function setupBanner(){
 
 
     var bannerList =
-        mangas.filter(function(manga){
+        mangas.filter(
+            function(manga){
 
-            return manga.cover;
+                return manga.cover;
 
-        }).slice(0, 10);
+            }
+        ).slice(0, 10);
 
 
     var currentBanner = 0;
@@ -1044,61 +1129,68 @@ function setupBanner(){
         );
 
 
-        setTimeout(function(){
+        setTimeout(
+            function(){
 
-            if(index < 0){
+                if(index < 0){
 
-                currentBanner =
-                    bannerList.length - 1;
+                    currentBanner =
+                        bannerList.length - 1;
 
-            }else if(
-                index >= bannerList.length
-            ){
+                }else if(
+                    index >=
+                    bannerList.length
+                ){
 
-                currentBanner = 0;
+                    currentBanner = 0;
 
-            }else{
+                }else{
 
-                currentBanner = index;
+                    currentBanner =
+                        index;
 
-            }
-
-
-            var manga =
-                bannerList[currentBanner];
-
-
-            bannerImg.src =
-                manga.cover ||
-                "Image/6.jpg";
+                }
 
 
-            bannerTitle.innerText =
-                manga.title ||
-                "Không tên";
+                var manga =
+                    bannerList[
+                        currentBanner
+                    ];
 
 
-            if(bannerBtn){
-
-                bannerBtn.onclick =
-                    function(e){
-
-                        e.preventDefault();
-
-                        openMangaUser(
-                            manga.id
-                        );
-
-                    };
-
-            }
+                bannerImg.src =
+                    manga.cover ||
+                    "Image/6.jpg";
 
 
-            bannerImg.classList.remove(
-                "slide-out"
-            );
+                bannerTitle.innerText =
+                    manga.title ||
+                    "Không tên";
 
-        }, 300);
+
+                if(bannerBtn){
+
+                    bannerBtn.onclick =
+                        function(e){
+
+                            e.preventDefault();
+
+                            openMangaUser(
+                                manga.id
+                            );
+
+                        };
+
+                }
+
+
+                bannerImg.classList.remove(
+                    "slide-out"
+                );
+
+            },
+            300
+        );
 
     }
 
@@ -1108,13 +1200,16 @@ function setupBanner(){
         showBanner(0);
 
 
-        setInterval(function(){
+        setInterval(
+            function(){
 
-            showBanner(
-                currentBanner + 1
-            );
+                showBanner(
+                    currentBanner + 1
+                );
 
-        }, 5500);
+            },
+            5500
+        );
 
     }
 
@@ -1209,91 +1304,100 @@ function renderHistory(){
 
     history
         .slice(0, 10)
-        .forEach(function(id){
+        .forEach(
+            function(id){
 
-            var manga =
-                mangas.find(function(item){
+                var manga =
+                    mangas.find(
+                        function(item){
 
-                    return Number(item.id) ===
-                           Number(id);
+                            return Number(
+                                item.id
+                            ) === Number(id);
 
-                });
-
-
-            if(!manga){
-
-                return;
-
-            }
-
-
-            var card =
-                document.createElement("div");
-
-
-            card.className =
-                "history-card";
-
-
-            card.onclick =
-                function(){
-
-                    openMangaUser(
-                        manga.id
+                        }
                     );
 
-                };
+
+                if(!manga){
+
+                    return;
+
+                }
 
 
-            card.innerHTML = `
+                var card =
+                    document.createElement(
+                        "div"
+                    );
 
-                <div class="history-cover">
 
-                    <img
-                        src="${
-                            manga.cover ||
-                            "Image/no-image.png"
-                        }"
-                        alt="${
+                card.className =
+                    "history-card";
+
+
+                card.onclick =
+                    function(){
+
+                        openMangaUser(
+                            manga.id
+                        );
+
+                    };
+
+
+                card.innerHTML = `
+
+                    <div class="history-cover">
+
+                        <img
+                            src="${
+                                manga.cover ||
+                                "Image/no-image.png"
+                            }"
+                            alt="${
+                                manga.title ||
+                                "Không tên"
+                            }"
+                            onerror="
+                                this.src='Image/no-image.png'
+                            "
+                        >
+
+                    </div>
+
+
+                    <h3 class="history-title">
+
+                        ${
                             manga.title ||
                             "Không tên"
-                        }"
-                        onerror="
-                            this.src='Image/no-image.png'
-                        "
-                    >
-
-                </div>
-
-
-                <h3 class="history-title">
-
-                    ${
-                        manga.title ||
-                        "Không tên"
-                    }
-
-                </h3>
-
-
-                <div class="history-bottom">
-
-                    <span>
-                        Chap ${
-                            getChapterNumber(
-                                manga
-                            )
                         }
-                    </span>
 
-                </div>
-
-            `;
+                    </h3>
 
 
-            historyList.appendChild(card);
+                    <div class="history-bottom">
 
-        });
+                        <span>
+                            Chap ${
+                                getChapterNumber(
+                                    manga
+                                )
+                            }
+                        </span>
+
+                    </div>
+
+                `;
+
+
+                historyList.appendChild(
+                    card
+                );
+
+            }
+        );
 
 
     if(
@@ -1310,657 +1414,1056 @@ function renderHistory(){
 }
 
 
-/* =========================
-   CHẠY
-========================= */
+/* =========================================================
+   CSS - TRUYỆN MỚI
+========================================================= */
 
-loadDataFromSupabase();
-var fixNewComicStyle = document.createElement("style");
+var fixNewComicStyle =
+    document.createElement("style");
+
+
 fixNewComicStyle.innerHTML = `
+
 @media screen and (min-width:769px){
+
     #comicList{
         display:grid !important;
-        grid-template-columns:repeat(5, 150px) !important;
+        grid-template-columns:
+            repeat(5, 150px) !important;
         gap:18px !important;
         justify-content:center !important;
     }
 
+
     #comicList .new-comic-card{
+
         width:150px !important;
         height:260px !important;
+
         background:#26364a !important;
+
         border-radius:8px !important;
+
         padding:8px !important;
+
         box-sizing:border-box !important;
+
         overflow:hidden !important;
+
         cursor:pointer !important;
+
         color:#fff !important;
+
         text-decoration:none !important;
+
     }
+
 
     #comicList .new-comic-cover{
+
         width:134px !important;
         height:190px !important;
+
         border-radius:6px !important;
+
         overflow:hidden !important;
+
         position:relative !important;
+
     }
+
 
     #comicList .new-comic-cover img{
+
         width:100% !important;
         height:100% !important;
+
         object-fit:cover !important;
+
         display:block !important;
+
     }
+
 
     #comicList .new-comic-title{
-    font-size:14px !important;
-    line-height:18px !important;
-    height:18px !important;
-    margin:7px 0 6px !important;
 
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
+        font-size:14px !important;
 
-    color:#fff !important;
-}
-    #comicList .new-comic-bottom{
-    display:flex !important;
-    justify-content:space-between !important;
-    align-items:center !important;
-
-    width:100% !important;
-    font-size:12px !important;
-}
-
-#comicList .new-comic-bottom span:first-child{
-    color:#7cff8b !important;
-}
-
-#comicList .new-comic-view{
-    color:#ffd54f !important;
-    display:flex !important;
-    align-items:center !important;
-    gap:3px !important;
-}
-
-#comicList .new-comic-view img{
-    width:12px !important;
-    height:12px !important;
-}
-
-    #comicList .new-more-card{
-        display:flex !important;
-        align-items:center !important;
-        justify-content:center !important;
-        flex-direction:column !important;
-    }
-}
-`;
-document.head.appendChild(fixNewComicStyle);
-var fixRankingStyle = document.createElement("style");
-fixRankingStyle.innerHTML = `
-@media screen and (min-width:769px){
-
-    .sidebar{
-        width:360px !important;
-        min-width:360px !important;
-        max-width:360px !important;
-        padding:18px !important;
-    }
-
-    #rankList{
-        width:100% !important;
-        display:flex !important;
-        flex-direction:column !important;
-        gap:12px !important;
-    }
-
-    .rank-card{
-        width:100% !important;
-        height:135px !important;
-
-        display:grid !important;
-        grid-template-columns:32px 90px 1fr !important;
-        align-items:center !important;
-        gap:12px !important;
-
-        background:#33415a !important;
-        border-radius:8px !important;
-        padding:8px 10px !important;
-        box-sizing:border-box !important;
-
-        cursor:pointer !important;
-        overflow:hidden !important;
-    }
-
-    .rank-stt{
-        color:#ffd54f !important;
-        font-size:22px !important;
-        font-weight:700 !important;
-        text-align:center !important;
-    }
-
-    .rank-cover-img{
-        width:90px !important;
-        height:120px !important;
-        min-width:90px !important;
-        max-width:90px !important;
-        object-fit:cover !important;
-        border-radius:6px !important;
-        display:block !important;
-    }
-
-    .rank-text{
-        min-width:0 !important;
-        width:100% !important;
-    }
-
-    .rank-text h3{
-        font-size:15px !important;
         line-height:18px !important;
+
         height:18px !important;
-        margin:0 0 12px 0 !important;
+
+        margin:7px 0 6px !important;
 
         white-space:nowrap !important;
+
         overflow:hidden !important;
+
         text-overflow:ellipsis !important;
 
         color:#fff !important;
-        font-weight:700 !important;
+
     }
 
-    .rank-row{
+
+    #comicList .new-comic-bottom{
+
         display:flex !important;
+
         justify-content:space-between !important;
+
         align-items:center !important;
+
         width:100% !important;
+
+        font-size:12px !important;
+
     }
 
-    .rank-chap{
-        color:#69ff7e !important;
-        font-size:13px !important;
-        font-weight:700 !important;
+
+    #comicList .new-comic-bottom
+    span:first-child{
+
+        color:#7cff8b !important;
+
     }
 
-    .rank-eye{
+
+    #comicList .new-comic-view{
+
+        color:#ffd54f !important;
+
         display:flex !important;
+
         align-items:center !important;
-        gap:4px !important;
-        color:#d7dde8 !important;
-        font-size:13px !important;
+
+        gap:3px !important;
+
     }
 
-    .rank-eye img{
-        width:13px !important;
-        height:13px !important;
+
+    #comicList .new-comic-view img{
+
+        width:12px !important;
+        height:12px !important;
+
     }
+
+
+    #comicList .new-more-card{
+
+        display:flex !important;
+
+        align-items:center !important;
+
+        justify-content:center !important;
+
+        flex-direction:column !important;
+
+    }
+
 }
+
 `;
-document.head.appendChild(fixRankingStyle);
-var fixRankingMobileStyle = document.createElement("style");
-fixRankingMobileStyle.innerHTML = `
-@media screen and (max-width:768px){
+
+
+document.head.appendChild(
+    fixNewComicStyle
+);
+
+
+/* =========================================================
+   CSS - RANKING DESKTOP
+========================================================= */
+
+var fixRankingStyle =
+    document.createElement("style");
+
+
+fixRankingStyle.innerHTML = `
+
+@media screen and (min-width:769px){
 
     .sidebar{
-        width:100% !important;
-        max-width:100% !important;
+
+        width:360px !important;
+
+        min-width:360px !important;
+
+        max-width:360px !important;
+
+        padding:18px !important;
+
     }
+
 
     #rankList{
+
+        width:100% !important;
+
         display:flex !important;
-        justify-content:center !important;
-        align-items:flex-start !important;
+
+        flex-direction:column !important;
+
+        gap:12px !important;
+
     }
 
-    .rank-card{
-        width:105px !important;
-        height:190px !important;
 
-        display:flex !important;
-        flex-direction:column !important;
+    .rank-card{
+
+        width:100% !important;
+
+        height:135px !important;
+
+        display:grid !important;
+
+        grid-template-columns:
+            32px 90px 1fr !important;
+
         align-items:center !important;
+
+        gap:12px !important;
 
         background:#33415a !important;
+
         border-radius:8px !important;
-        padding:8px !important;
+
+        padding:8px 10px !important;
+
         box-sizing:border-box !important;
+
+        cursor:pointer !important;
+
         overflow:hidden !important;
+
     }
+
 
     .rank-stt{
-        font-size:18px !important;
-        margin-bottom:6px !important;
+
+        color:#ffd54f !important;
+
+        font-size:22px !important;
+
+        font-weight:700 !important;
+
+        text-align:center !important;
+
     }
+
 
     .rank-cover-img{
-        width:80px !important;
-        height:110px !important;
+
+        width:90px !important;
+
+        height:120px !important;
+
+        min-width:90px !important;
+
+        max-width:90px !important;
+
         object-fit:cover !important;
+
         border-radius:6px !important;
+
+        display:block !important;
+
     }
+
 
     .rank-text{
+
+        min-width:0 !important;
+
         width:100% !important;
+
     }
+
 
     .rank-text h3{
-        font-size:12px !important;
-        line-height:15px !important;
-        height:30px !important;
-        margin:6px 0 5px 0 !important;
+
+        font-size:15px !important;
+
+        line-height:18px !important;
+
+        height:18px !important;
+
+        margin:0 0 12px 0 !important;
+
+        white-space:nowrap !important;
 
         overflow:hidden !important;
-        text-align:center !important;
+
+        text-overflow:ellipsis !important;
+
+        color:#fff !important;
+
+        font-weight:700 !important;
+
     }
+
 
     .rank-row{
-        width:100% !important;
+
         display:flex !important;
+
         justify-content:space-between !important;
+
         align-items:center !important;
-        font-size:11px !important;
+
+        width:100% !important;
+
     }
+
 
     .rank-chap{
+
         color:#69ff7e !important;
-        font-size:11px !important;
+
+        font-size:13px !important;
+
+        font-weight:700 !important;
+
     }
+
 
     .rank-eye{
+
         display:flex !important;
+
         align-items:center !important;
-        gap:3px !important;
-        font-size:11px !important;
+
+        gap:4px !important;
+
+        color:#d7dde8 !important;
+
+        font-size:13px !important;
+
     }
 
+
     .rank-eye img{
-        width:11px !important;
-        height:11px !important;
+
+        width:13px !important;
+
+        height:13px !important;
+
     }
+
 }
+
 `;
-document.head.appendChild(fixRankingMobileStyle);
-var fixRankingMobileStyle = document.createElement("style");
+
+
+document.head.appendChild(
+    fixRankingStyle
+);
+
+
+/* =========================================================
+   CSS - MOBILE RANKING
+========================================================= */
+
+var fixRankingMobileStyle =
+    document.createElement("style");
+
+
 fixRankingMobileStyle.innerHTML = `
+
 @media screen and (max-width:768px){
 
     .sidebar{
+
         width:100% !important;
+
         max-width:100% !important;
+
         padding:15px 10px !important;
+
         box-sizing:border-box !important;
+
     }
+
 
     #rankList{
+
         width:100% !important;
+
         display:flex !important;
+
         flex-direction:row !important;
+
         justify-content:flex-start !important;
+
         align-items:flex-start !important;
+
         gap:10px !important;
+
         overflow-x:auto !important;
+
         overflow-y:hidden !important;
+
         padding:0 5px 10px !important;
+
         box-sizing:border-box !important;
+
     }
 
+
     .rank-card{
+
         width:115px !important;
+
         min-width:115px !important;
+
         max-width:115px !important;
+
         height:215px !important;
 
         display:flex !important;
+
         flex-direction:column !important;
+
         align-items:center !important;
 
         background:#33415a !important;
+
         border-radius:8px !important;
+
         padding:8px !important;
+
         box-sizing:border-box !important;
+
         overflow:hidden !important;
+
     }
+
 
     .rank-stt{
+
         font-size:18px !important;
+
         line-height:20px !important;
+
         margin:0 0 6px 0 !important;
+
     }
+
 
     .rank-cover-img{
+
         width:80px !important;
+
         height:110px !important;
+
         object-fit:cover !important;
+
         border-radius:6px !important;
+
         display:block !important;
+
     }
+
 
     .rank-text{
+
         width:100% !important;
+
         min-width:0 !important;
+
     }
 
+
     .rank-text h3{
+
         width:100% !important;
+
         font-size:12px !important;
+
         line-height:15px !important;
+
         height:30px !important;
+
         margin:6px 0 6px 0 !important;
 
         overflow:hidden !important;
+
         text-align:left !important;
 
         display:-webkit-box !important;
-        -webkit-line-clamp:2;
-        -webkit-box-orient:vertical;
+
+        -webkit-line-clamp:2 !important;
+
+        -webkit-box-orient:vertical !important;
+
     }
+
 
     .rank-row{
+
         width:100% !important;
+
         display:flex !important;
+
         justify-content:space-between !important;
+
         align-items:center !important;
+
     }
+
 
     .rank-chap{
+
         color:#69ff7e !important;
+
         font-size:11px !important;
+
         white-space:nowrap !important;
+
     }
+
 
     .rank-eye{
+
         display:flex !important;
+
         align-items:center !important;
+
         gap:3px !important;
+
         font-size:11px !important;
+
         white-space:nowrap !important;
+
     }
+
 
     .rank-eye img{
+
         width:11px !important;
+
         height:11px !important;
+
     }
+
 }
+
 `;
-document.head.appendChild(fixRankingMobileStyle);
-setTimeout(function(){
 
-    document.querySelectorAll("#rankList .rank-item img")
-    .forEach(function(img){
 
-        img.style.width = "90px";
-        img.style.height = "120px";
-        img.style.objectFit = "cover";
-        img.style.borderRadius = "5px";
-    });
+document.head.appendChild(
+    fixRankingMobileStyle
+);
 
-},1000);
-var fixMobileComicAndRankStyle = document.createElement("style");
+
+/* =========================================================
+   FIX ẢNH RANKING CŨ
+========================================================= */
+
+setTimeout(
+    function(){
+
+        document
+            .querySelectorAll(
+                "#rankList .rank-item img"
+            )
+            .forEach(
+                function(img){
+
+                    img.style.width =
+                        "90px";
+
+                    img.style.height =
+                        "120px";
+
+                    img.style.objectFit =
+                        "cover";
+
+                    img.style.borderRadius =
+                        "5px";
+
+                }
+            );
+
+    },
+    1000
+);
+
+
+/* =========================================================
+   CSS - MOBILE TRUYỆN + RANKING
+========================================================= */
+
+var fixMobileComicAndRankStyle =
+    document.createElement("style");
+
 
 fixMobileComicAndRankStyle.innerHTML = `
+
 @media screen and (max-width:768px){
 
     .main-content{
+
         display:block !important;
+
         width:100% !important;
+
         max-width:100% !important;
+
         height:auto !important;
+
         overflow:visible !important;
+
     }
+
 
     .content{
+
         display:block !important;
+
         width:100% !important;
+
         max-width:100% !important;
+
         height:auto !important;
+
         overflow:visible !important;
+
     }
 
+
     #comicList{
+
         width:100% !important;
+
         display:grid !important;
-        grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr))
+            !important;
+
         gap:10px !important;
+
         align-items:start !important;
 
         height:auto !important;
+
         max-height:none !important;
+
         overflow:visible !important;
 
         box-sizing:border-box !important;
+
     }
 
+
     #comicList .new-comic-card{
+
         width:100% !important;
+
         min-width:0 !important;
+
         max-width:none !important;
 
         height:215px !important;
+
         background:#33415a !important;
+
         border-radius:8px !important;
+
         padding:6px !important;
+
         box-sizing:border-box !important;
 
         overflow:hidden !important;
+
         color:#fff !important;
+
         text-decoration:none !important;
+
     }
+
 
     #comicList .new-comic-cover{
+
         width:100% !important;
+
         height:150px !important;
+
         border-radius:6px !important;
+
         overflow:hidden !important;
+
         position:relative !important;
+
     }
+
 
     #comicList .new-comic-cover img{
+
         width:100% !important;
+
         height:100% !important;
+
         object-fit:cover !important;
+
         display:block !important;
+
     }
 
+
     #comicList .new-comic-title{
+
         font-size:12px !important;
+
         line-height:15px !important;
+
         height:30px !important;
+
         margin:5px 0 5px 0 !important;
 
         overflow:hidden !important;
+
         display:-webkit-box !important;
+
         -webkit-line-clamp:2 !important;
+
         -webkit-box-orient:vertical !important;
+
     }
+
 
     #comicList .new-comic-bottom{
+
         display:flex !important;
+
         justify-content:space-between !important;
+
         align-items:center !important;
+
         font-size:11px !important;
+
     }
 
+
     #comicList .new-more-card{
+
         grid-column:1 / -1 !important;
 
         width:100% !important;
+
         height:90px !important;
+
         min-height:90px !important;
+
         max-height:90px !important;
 
         display:flex !important;
+
         flex-direction:column !important;
+
         align-items:center !important;
+
         justify-content:center !important;
 
         margin:0 0 22px 0 !important;
+
         padding:0 !important;
+
     }
 
-    #comicList .new-more-card .more-icon{
+
+    #comicList .new-more-card
+    .more-icon{
+
         font-size:28px !important;
+
         line-height:24px !important;
+
         color:#2ecc71 !important;
+
         margin-bottom:6px !important;
+
     }
+
 
     #comicList .new-more-card p{
+
         margin:0 !important;
+
         font-size:18px !important;
+
         font-weight:700 !important;
+
         color:#fff !important;
+
     }
 
+
     .sidebar{
+
         display:block !important;
+
         width:100% !important;
+
         min-width:0 !important;
+
         max-width:100% !important;
 
         margin-top:20px !important;
+
         clear:both !important;
 
         position:relative !important;
+
         transform:none !important;
+
         box-sizing:border-box !important;
+
     }
+
 }
+
 `;
-document.head.appendChild(fixMobileComicAndRankStyle);
-var fixHistoryStyle = document.createElement("style");
+
+
+document.head.appendChild(
+    fixMobileComicAndRankStyle
+);
+
+
+/* =========================================================
+   CSS - LỊCH SỬ ĐỌC
+========================================================= */
+
+var fixHistoryStyle =
+    document.createElement("style");
+
 
 fixHistoryStyle.innerHTML = `
-/* LỊCH SỬ ĐỌC */
+
 #historyList.history-grid{
+
     width:100% !important;
 
     display:flex !important;
+
     flex-direction:row !important;
+
     justify-content:center !important;
+
     align-items:flex-start !important;
 
     gap:16px !important;
+
     flex-wrap:wrap !important;
 
     margin-top:18px !important;
+
     padding:0 10px 25px !important;
+
     box-sizing:border-box !important;
+
 }
 
+
 #historyList .history-card{
+
     width:135px !important;
+
     min-width:135px !important;
+
     max-width:135px !important;
 
     display:flex !important;
+
     flex-direction:column !important;
+
     align-items:center !important;
 
     background:transparent !important;
+
     color:#fff !important;
+
     text-align:center !important;
+
     cursor:pointer !important;
+
     overflow:hidden !important;
+
 }
 
+
 #historyList .history-cover{
+
     width:120px !important;
+
     height:170px !important;
 
     border-radius:6px !important;
+
     overflow:hidden !important;
+
     background:#26364a !important;
+
 }
+
 
 #historyList .history-cover img{
+
     width:100% !important;
+
     height:100% !important;
+
     object-fit:cover !important;
+
     display:block !important;
+
 }
 
+
 #historyList .history-title{
+
     width:120px !important;
 
     font-size:13px !important;
+
     line-height:16px !important;
+
     height:32px !important;
 
     margin:8px 0 4px 0 !important;
 
     color:#fff !important;
+
     font-weight:700 !important;
+
     text-align:center !important;
 
     overflow:hidden !important;
+
     display:-webkit-box !important;
+
     -webkit-line-clamp:2 !important;
+
     -webkit-box-orient:vertical !important;
+
 }
 
+
 #historyList .history-bottom{
+
     width:120px !important;
 
     display:flex !important;
+
     justify-content:center !important;
+
     align-items:center !important;
 
     font-size:12px !important;
+
     color:#69ff7e !important;
+
     font-weight:700 !important;
+
 }
+
 
 #historyList .history-empty{
+
     width:100% !important;
+
     text-align:center !important;
+
     color:#fff !important;
+
     font-size:16px !important;
+
     margin:0 !important;
+
 }
 
+
 /* MOBILE */
+
 @media screen and (max-width:768px){
+
     #historyList.history-grid{
+
         justify-content:flex-start !important;
+
         flex-wrap:nowrap !important;
 
         overflow-x:auto !important;
+
         overflow-y:hidden !important;
 
         gap:10px !important;
+
         padding:0 8px 12px !important;
+
         box-sizing:border-box !important;
+
     }
+
 
     #historyList .history-card{
+
         width:105px !important;
+
         min-width:105px !important;
+
         max-width:105px !important;
+
     }
+
 
     #historyList .history-cover{
+
         width:90px !important;
+
         height:128px !important;
+
     }
 
+
     #historyList .history-title{
+
         width:90px !important;
 
         font-size:12px !important;
+
         line-height:15px !important;
+
         height:30px !important;
 
         margin:6px 0 4px 0 !important;
+
     }
+
 
     #historyList .history-bottom{
+
         width:90px !important;
+
         font-size:11px !important;
+
     }
+
 }
+
 `;
 
-document.head.appendChild(fixHistoryStyle);
+
+document.head.appendChild(
+    fixHistoryStyle
+);
+
+
+/* =========================================================
+   CHẠY DỮ LIỆU
+========================================================= */
+
 loadDataFromSupabase();
