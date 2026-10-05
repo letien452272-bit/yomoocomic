@@ -748,21 +748,24 @@ saveChapterBtn.onclick = async function(){
     }
 
 
-    var chapterData = {
+   var chapterData = {
 
-        manga_id:
-            mangaId,
+    manga_id:
+        mangaId,
 
-        number:
-            Number(number),
+    number:
+        Number(number),
 
-        title:
-            chapterTitle.value.trim(),
+    title:
+        chapterTitle.value.trim(),
 
-        images:
-            uploadedImages
+    images:
+        uploadedImages,
 
-    };
+    created_at:
+        new Date().toISOString()
+
+};
 
 
     console.log(
