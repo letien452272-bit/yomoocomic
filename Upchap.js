@@ -833,50 +833,89 @@ saveChapterBtn.onclick = async function(){
 
 
     /* =========================================
-       CẬP NHẬT CHAPTER MỚI NHẤT CHO TRUYỆN
-       ========================================= */
+   CẬP NHẬT CHAPTER MỚI NHẤT CHO TRUYỆN
+   ========================================= */
 
-    var latestChapterResult =
+var allChaptersResult =
     await supabase
-        .from("mangas")
-        .update({
-
-            latest_chapter:
-                String(number),
-
-            updated_at:
-                new Date().toISOString()
-
-        })
-        .eq("id", mangaId);
+        .from("chapters")
+        .select("number, created_at")
+        .eq("manga_id", mangaId);
 
 
-    if(latestChapterResult.error){
+if(allChaptersResult.error){
 
-        console.log(
-            "Lỗi cập nhật latest_chapter:",
-            latestChapterResult.error
-        );
+    console.log(
+        "Lỗi lấy danh sách chapter:",
+        allChaptersResult.error
+    );
+
+    /*
+       CHAPTER ĐÃ LƯU THÀNH CÔNG.
+       Không chặn việc hoàn tất upload chỉ vì
+       bước đồng bộ latest_chapter bị lỗi.
+    */
+
+}else{
+
+    var allChapters =
+        allChaptersResult.data || [];
 
 
-        alert(
-            "Chapter đã lưu nhưng không cập nhật được chapter mới nhất: " +
-            latestChapterResult.error.message
-        );
+    var maxChapter = 0;
 
 
-        setSaveButtonLoading(false);
+    allChapters.forEach(function(chapter){
 
-        return;
+        var chapterNum =
+            Number(chapter.number) || 0;
 
-    }
+
+        if(chapterNum > maxChapter){
+
+            maxChapter = chapterNum;
+
+        }
+
+    });
 
 
     console.log(
-        "Đã cập nhật chapter mới nhất:",
-        number
+        "Chapter lớn nhất hiện tại:",
+        maxChapter
     );
 
+
+    if(maxChapter > 0){
+
+        var latestChapterResult =
+            await supabase
+                .from("mangas")
+                .update({
+                    latest_chapter: maxChapter
+                })
+                .eq("id", mangaId);
+
+
+        if(latestChapterResult.error){
+
+            console.log(
+                "Lỗi cập nhật latest_chapter:",
+                latestChapterResult.error
+            );
+
+        }else{
+
+            console.log(
+                "Đã cập nhật latest_chapter:",
+                maxChapter
+            );
+
+        }
+
+    }
+
+}
 
     /* =========================
        DỌN LOCAL STORAGE
